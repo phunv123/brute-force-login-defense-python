@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng ký{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h2>Đăng ký tài khoản</h2>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+
+        <label>{{ form.username.label }}</label>
+        {{ form.username(class="input") }}
+        {% for error in form.username.errors %}
+            <small class="error">{{ error }}</small>
+        {% endfor %}
+
+        <label>{{ form.email.label }}</label>
+        {{ form.email(class="input") }}
+        {% for error in form.email.errors %}
+            <small class="error">{{ error }}</small>
+        {% endfor %}
+
+        <label>{{ form.password.label }}</label>
+        {{ form.password(class="input") }}
+        {% for error in form.password.errors %}
+            <small class="error">{{ error }}</small>
+        {% endfor %}
+
+        <label>{{ form.confirm_password.label }}</label>
+        {{ form.confirm_password(class="input") }}
+        {% for error in form.confirm_password.errors %}
+            <small class="error">{{ error }}</small>
+        {% endfor %}
+
+        {{ form.submit(class="button") }}
+    </form>
+</section>
+{% endblock %}

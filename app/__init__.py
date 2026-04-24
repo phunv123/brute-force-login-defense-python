@@ -34,4 +34,8 @@ def create_app(config_class=Config):
     def load_user(user_id):
         return db.session.get(User, int(user_id))
 
+    from app.routes.auth import auth_bp
+
+    app.register_blueprint(auth_bp)
+
     return app
