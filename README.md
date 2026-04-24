@@ -1,17 +1,109 @@
-# Brute Force Login Defense System
+# ⚔️🛡️ Brute Force Login — Attack & Defense System
 
-Đồ án Python/Cyber: xây dựng hệ thống phát hiện và chặn Brute Force Login bằng Python Flask.
+> Hệ thống phát hiện và chặn tấn công Brute Force Login với Attack Simulator tích hợp.
 
-## Thành viên
-- Leader: Phú
-- Member 1: ...
-- Member 2: ...
+## 📝 Mô tả dự án
 
-## Chức năng dự kiến
-- Đăng ký / đăng nhập
-- Ghi log đăng nhập thành công / thất bại
-- Phát hiện brute force theo IP / username
-- Khóa tài khoản tạm thời
-- Chặn IP tạm thời
-- Dashboard admin
-- Mô phỏng tấn công brute force
+Đồ án môn **Lập trình ứng dụng với Python 3** — Xây dựng hệ thống bảo mật web có khả năng:
+- **Tấn công (Red Team):** Mô phỏng các kiểu tấn công brute force, dictionary attack
+- **Phòng thủ (Blue Team):** Phát hiện, chặn tự động và giám sát qua SOC Dashboard
+
+## 👥 Thành viên nhóm
+
+| STT | Họ tên | MSSV | Vai trò | Nhiệm vụ chính |
+|-----|--------|------|---------|----------------|
+| 1 | Nguyễn Văn Phú | | Leader | Backend, Detection Engine, Blocking Engine, API |
+| 2 | Lê Quang Tùng | | Member | Giao diện HTML/CSS, Dashboard UI |
+| 3 | Nguyễn Hồng Phong | | Member | Dữ liệu mẫu, Tài liệu, Kiểm thử |
+
+## ✨ Chức năng chính
+
+### 🔐 Hệ thống xác thực
+- Đăng ký / Đăng nhập với mã hóa mật khẩu (Bcrypt)
+- Quản lý phiên đăng nhập (Session)
+- Phân quyền Admin / User
+- CAPTCHA sau nhiều lần đăng nhập thất bại
+
+### 🔍 Phát hiện tấn công (Detection Engine)
+- Theo dõi đăng nhập thất bại theo IP và Username
+- Phát hiện Brute Force và Credential Stuffing
+- Rate Limiting — giới hạn số request/phút
+- Cảnh báo realtime khi phát hiện tấn công
+
+### 🚫 Chặn tự động (Blocking Engine)
+- Khóa tài khoản tạm thời sau N lần thất bại
+- Chặn IP tạm thời / vĩnh viễn
+- Whitelist / Blacklist IP
+- Admin unlock thủ công qua Dashboard
+
+### 📊 Dashboard giám sát (SOC Dashboard)
+- Tổng quan: số lần login, thất bại, IP bị chặn
+- Biểu đồ hoạt động đăng nhập theo thời gian
+- Bảng log chi tiết có tìm kiếm, lọc, phân trang
+- Quản lý IP bị chặn và tài khoản bị khóa
+- Cấu hình ngưỡng bảo mật
+
+### ⚔️ Mô phỏng tấn công (Attack Simulator)
+- Brute Force đơn giản
+- Dictionary Attack (từ file wordlist)
+- Credential Stuffing
+- Báo cáo kết quả tấn công
+
+## 🛠️ Công nghệ sử dụng
+
+| Thành phần | Công nghệ |
+|------------|-----------|
+| Ngôn ngữ | Python 3.10+ |
+| Web Framework | Flask 3.x |
+| Database | SQLite |
+| ORM | SQLAlchemy |
+| Auth | Flask-Login, Flask-Bcrypt |
+| Frontend | Jinja2, Chart.js, DataTables.js |
+| Testing | pytest |
+
+## 🚀 Hướng dẫn cài đặt
+
+```bash
+# 1. Clone dự án
+git clone https://github.com/phunv123/brute-force-login-defense-python.git
+cd brute-force-login-defense-python
+
+# 2. Tạo môi trường ảo
+python3 -m venv venv
+source venv/bin/activate
+
+# 3. Cài đặt thư viện
+pip install -r requirements.txt
+
+# 4. Cấu hình môi trường
+cp .env.example .env
+
+# 5. Chạy ứng dụng
+python run.py
+```
+
+Mở trình duyệt: `http://localhost:5000`
+
+## 📁 Cấu trúc dự án
+
+```
+brute-force-login-defense-python/
+├── app/                    # Code chính
+│   ├── models/             # Database models
+│   ├── services/           # Business logic
+│   ├── routes/             # API & page routes
+│   ├── templates/          # HTML templates
+│   └── static/             # CSS, JS, images
+├── simulator/              # Công cụ mô phỏng tấn công
+│   └── wordlists/          # Danh sách mật khẩu
+├── tests/                  # Unit tests
+├── docs/                   # Tài liệu
+├── scripts/                # Scripts tiện ích
+├── requirements.txt        # Danh sách thư viện Python
+├── .env.example            # Template cấu hình
+└── .gitignore              # Danh sách file bỏ qua
+```
+
+## 📄 Giấy phép
+
+MIT License
