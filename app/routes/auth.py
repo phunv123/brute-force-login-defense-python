@@ -26,7 +26,7 @@ def get_client_ip():
 def index():
     if current_user.is_authenticated:
         return redirect(url_for("auth.dashboard"))
-    return redirect(url_for("auth.login"))
+    return render_template("index.html")
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])

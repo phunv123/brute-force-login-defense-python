@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PhúNV Security — Hệ thống phát hiện và phòng chống Brute Force tấn công theo thời gian thực.">
+  <title>PhúNV Security — Enterprise Brute Force Defense</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <!-- Lucide Icons — clean SVG line icons used by Linear, Vercel -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="landing-page">
+
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar">
+    <a href="{{ url_for('auth.index') }}" class="navbar-brand">
+      <span class="brand-icon">
+        <span class="brand-monogram">P</span>
+      </span>
+      PhúNV<span class="brand-suffix">&nbsp;Security</span>
+    </a>
+
+    <ul class="navbar-nav">
+      <li><a href="#features" class="active">Features</a></li>
+      <li><a href="{{ url_for('auth.login') }}">Demo</a></li>
+      <li><a href="#">Docs</a></li>
+    </ul>
+
+    <div class="navbar-actions">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-ghost">Log in</a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-outline">Get started</a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      Real-time Attack Detection
+    </div>
+
+    <!-- Visual — Shield SVG với orbit rings -->
+    <div class="hero-visual">
+      <div class="shield-container">
+        <div class="orbit-ring"></div>
+        <div class="orbit-ring"></div>
+        <div class="shield-icon">
+          <i data-lucide="shield-check" style="width:44px;height:44px;stroke:#a78bfa;stroke-width:1.5;"></i>
+        </div>
+      </div>
+    </div>
+
+    <h1 class="text-gradient">
+      Enterprise-Grade<br>Brute Force Defense
+    </h1>
+
+    <p class="hero-subtitle">
+      Phát hiện, ngăn chặn và phân tích các cuộc tấn công
+      đăng nhập theo thời gian thực. Bảo vệ hệ thống ở
+      tầng ứng dụng với độ chính xác cao.
+    </p>
+
+    <div class="hero-actions">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+        Start Demo
+        <i data-lucide="arrow-right" style="width:15px;height:15px;"></i>
+      </a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-lg">
+        Create Account
+      </a>
+    </div>
+  </section>
+
+  <!-- ── STATS BAR ── -->
+  <div class="stats-bar container">
+    <div class="stat-item">
+      <div class="stat-number">10K+</div>
+      <div class="stat-label">Attacks blocked</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">&lt;50ms</div>
+      <div class="stat-label">Detection latency</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">99.9%</div>
+      <div class="stat-label">Uptime SLA</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">Real-time</div>
+      <div class="stat-label">SOC Dashboard</div>
+    </div>
+  </div>
+
+  <!-- ── FEATURES ── -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">Why BruteGuard?</p>
+        <h2 class="section-title">Bảo vệ toàn diện ở mọi lớp</h2>
+        <p class="section-subtitle">
+          Từ phát hiện tự động đến phân tích hành vi — tất cả trong một nền tảng duy nhất.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i data-lucide="scan-search" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+          </div>
+          <h3>Detection Engine</h3>
+          <p>Phát hiện brute force theo ngưỡng cấu hình: số lần thất bại, tần suất, và địa chỉ IP trong thời gian thực.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i data-lucide="shield-off" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+          </div>
+          <h3>Auto IP Blocking</h3>
+          <p>Tự động chặn địa chỉ IP vi phạm. Hỗ trợ block tạm thời và vĩnh viễn với danh sách whitelist linh hoạt.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i data-lucide="layout-dashboard" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+          </div>
+          <h3>SOC Dashboard</h3>
+          <p>Bảng điều khiển tổng quan với biểu đồ hoạt động, bảng log và cảnh báo thời gian thực.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i data-lucide="terminal" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+          </div>
+          <h3>Attack Simulator</h3>
+          <p>Mô phỏng tấn công brute force để kiểm tra hiệu quả phòng thủ — Red Team vs Blue Team.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i data-lucide="bell-ring" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+          </div>
+          <h3>Smart Alerts</h3>
+          <p>Cảnh báo thông minh phân loại theo mức độ: Critical, Warning, Info — không bỏ sót sự kiện nào.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i data-lucide="sliders-horizontal" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+          </div>
+          <h3>Easy Configuration</h3>
+          <p>Tùy chỉnh ngưỡng phát hiện, thời gian khóa và giới hạn rate-limiting qua giao diện quản trị.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>Sẵn sàng bảo vệ hệ thống?</h2>
+      <p>Bắt đầu ngay hôm nay — miễn phí, không cần thẻ tín dụng.</p>
+      <div class="hero-actions">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+          Get started free
+          <i data-lucide="arrow-right" style="width:15px;height:15px;"></i>
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-lg">
+          Sign in
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <span>© 2025 PhúNV Security. All rights reserved.</span>
+    <span>Built for Security Operations</span>
+  </footer>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>
