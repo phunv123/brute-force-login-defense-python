@@ -3,175 +3,458 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="PhúNV Security — Hệ thống phát hiện và phòng chống Brute Force tấn công theo thời gian thực.">
+  <meta name="description" content="PhúNV Security — Hệ thống phát hiện và phòng chống Brute Force theo thời gian thực với SOC Dashboard, Auto IP Blocking và Honeypot.">
+  <meta name="theme-color" content="#7c3aed">
+
   <title>PhúNV Security — Enterprise Brute Force Defense</title>
+
+  <link rel="canonical" href="{{ request.url }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PhúNV Security — Enterprise Brute Force Defense">
+  <meta property="og:description" content="Theo dõi login signal, phân tích rủi ro và kích hoạt phản ứng phòng thủ theo thời gian thực.">
+  <meta property="og:url" content="{{ request.url }}">
+  <meta property="og:image" content="{{ url_for('static', filename='favicon.svg', _external=True) }}">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="PhúNV Security">
+  <meta name="twitter:description" content="Enterprise Brute Force Defense — Live SOC simulator.">
+
+  <!-- Preconnects -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://unpkg.com">
+
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <!-- Lucide Icons — clean SVG line icons used by Linear, Vercel -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="{{ url_for('static', filename='js/landing.js') }}" defer></script>
 </head>
 <body class="landing-page">
 
+  <a href="#main" class="sr-only sr-only-focusable">Bỏ qua đến nội dung chính</a>
+
   <!-- ── NAVBAR ── -->
-  <nav class="navbar">
-    <a href="{{ url_for('auth.index') }}" class="navbar-brand">
-      <span class="brand-icon">
+  <nav class="navbar" aria-label="Primary">
+    <a href="{{ url_for('auth.index') }}" class="navbar-brand" aria-label="PhúNV Security — Trang chủ">
+      <span class="brand-icon" aria-hidden="true">
         <span class="brand-monogram">P</span>
       </span>
       PhúNV<span class="brand-suffix">&nbsp;Security</span>
     </a>
 
-    <ul class="navbar-nav">
-      <li><a href="#features" class="active">Features</a></li>
-      <li><a href="{{ url_for('auth.login') }}">Demo</a></li>
-      <li><a href="#">Docs</a></li>
+    <button type="button" class="nav-toggle" aria-label="Mở menu" aria-expanded="false" aria-controls="nav-menu">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </button>
+
+    <ul class="navbar-nav" id="nav-menu">
+      <li class="nav-close-item"><button type="button" class="nav-close" aria-label="Đóng menu"><i data-lucide="x" aria-hidden="true" style="width:20px;height:20px;"></i></button></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#live-lab">Live Lab</a></li>
+      <li><a href="#attack-defense">Attack / Defense</a></li>
     </ul>
 
     <div class="navbar-actions">
+      <div class="lang-switcher">
+        <a href="{{ url_for('auth.set_language', lang='vi') }}" class="lang-btn {% if get_locale() != 'en' %}active{% endif %}" title="Tiếng Việt">VI</a>
+        <a href="{{ url_for('auth.set_language', lang='en') }}" class="lang-btn {% if get_locale() == 'en' %}active{% endif %}" title="English">EN</a>
+      </div>
       <a href="{{ url_for('auth.login') }}" class="btn btn-ghost">Log in</a>
       <a href="{{ url_for('auth.register') }}" class="btn btn-outline">Get started</a>
     </div>
   </nav>
 
-  <!-- ── HERO ── -->
-  <section class="hero">
-    <div class="hero-badge">
-      <span class="badge-dot"></span>
-      Real-time Attack Detection
-    </div>
+  <main id="main">
 
-    <!-- Visual — Shield SVG với orbit rings -->
-    <div class="hero-visual">
-      <div class="shield-container">
-        <div class="orbit-ring"></div>
-        <div class="orbit-ring"></div>
-        <div class="shield-icon">
-          <i data-lucide="shield-check" style="width:44px;height:44px;stroke:#a78bfa;stroke-width:1.5;"></i>
+    <!-- ── HERO ── -->
+    <section class="hero hero-split" aria-labelledby="hero-title">
+      <div class="hero-inner container">
+        <div class="hero-copy">
+          <div class="hero-badge">
+            <span class="badge-dot" aria-hidden="true"></span>
+            Threat Intelligence Graph
+          </div>
+
+          <h1 class="hero-title" id="hero-title">
+            The fastest<br>
+            on-ramp to<br>
+            brute-force defense
+          </h1>
+
+          <p class="hero-subtitle">
+            Theo dõi login signal, phân tích rủi ro và kích hoạt phản ứng
+            phòng thủ theo thời gian thực — mô phỏng chuẩn SOC doanh nghiệp ngay trên web.
+          </p>
+
+          <div class="hero-actions">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+              Start Demo
+              <i data-lucide="arrow-right" aria-hidden="true" style="width:15px;height:15px;"></i>
+            </a>
+            <a href="#incident-snapshot" class="btn btn-outline btn-lg">
+              View Incident Snapshot
+            </a>
+          </div>
         </div>
+
+        <div class="hero-graph" id="hero-graph" aria-hidden="true">
+          <span class="graph-link link-a"></span>
+          <span class="graph-link link-b"></span>
+          <span class="graph-link link-c"></span>
+
+          <div class="graph-node node-center"></div>
+          <div class="graph-node node-a"></div>
+          <div class="graph-node node-b"></div>
+          <div class="graph-node node-c"></div>
+
+          <article class="graph-card scramble-card card-top" data-depth="1.8">
+            <div class="graph-card-label">Ingress</div>
+            <div class="graph-kv">
+              <span>identity</span>
+              <strong class="scramble-text" data-text="admin@corp.local">admin@corp.local</strong>
+            </div>
+            <div class="graph-kv">
+              <span>signal</span>
+              <strong>failed</strong>
+            </div>
+          </article>
+
+          <article class="graph-card scramble-card card-right" data-depth="1.2">
+            <div class="graph-card-label">Detection</div>
+            <div class="graph-kv">
+              <span>risk score</span>
+              <strong class="scramble-text" data-text="89 / 100">89 / 100</strong>
+            </div>
+            <div class="graph-kv">
+              <span>policy</span>
+              <strong>threshold hit</strong>
+            </div>
+          </article>
+
+          <article class="graph-card scramble-card card-bottom" data-depth="1.5">
+            <div class="graph-card-label">Response</div>
+            <div class="graph-kv">
+              <span>action</span>
+              <strong class="scramble-text" data-text="block_ip(203.0.113.71)">block_ip(203.0.113.71)</strong>
+            </div>
+            <div class="graph-kv">
+              <span>ttl</span>
+              <strong>30m</strong>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── STATS BAR — data thật từ DB ── -->
+    <div class="stats-bar container">
+      <div class="stat-item">
+        <div class="stat-number" data-count="{{ total_attacks_blocked or 0 }}">0</div>
+        <div class="stat-label">Attacks detected</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">&lt;2s</div>
+        <div class="stat-label">Detection latency</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-count="{{ precision_value }}" data-suffix="%" data-decimal="1">0</div>
+        <div class="stat-label">Detection precision</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-count="4" data-suffix=" Layers">0</div>
+        <div class="stat-label">Auto Response</div>
       </div>
     </div>
 
-    <h1 class="text-gradient">
-      Enterprise-Grade<br>Brute Force Defense
-    </h1>
-
-    <p class="hero-subtitle">
-      Phát hiện, ngăn chặn và phân tích các cuộc tấn công
-      đăng nhập theo thời gian thực. Bảo vệ hệ thống ở
-      tầng ứng dụng với độ chính xác cao.
-    </p>
-
-    <div class="hero-actions">
-      <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
-        Start Demo
-        <i data-lucide="arrow-right" style="width:15px;height:15px;"></i>
-      </a>
-      <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-lg">
-        Create Account
-      </a>
-    </div>
-  </section>
-
-  <!-- ── STATS BAR ── -->
-  <div class="stats-bar container">
-    <div class="stat-item">
-      <div class="stat-number">10K+</div>
-      <div class="stat-label">Attacks blocked</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-number">&lt;50ms</div>
-      <div class="stat-label">Detection latency</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-number">99.9%</div>
-      <div class="stat-label">Uptime SLA</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-number">Real-time</div>
-      <div class="stat-label">SOC Dashboard</div>
-    </div>
-  </div>
-
-  <!-- ── FEATURES ── -->
-  <section class="features" id="features">
-    <div class="container">
-      <div class="section-header">
-        <p class="section-label">Why BruteGuard?</p>
-        <h2 class="section-title">Bảo vệ toàn diện ở mọi lớp</h2>
-        <p class="section-subtitle">
-          Từ phát hiện tự động đến phân tích hành vi — tất cả trong một nền tảng duy nhất.
-        </p>
+    <!-- ── TRUST STRIP ── -->
+    <section class="trust-strip container" aria-label="Technology stack">
+      <p class="trust-label">Built with enterprise-ready stack</p>
+      <div class="trust-logos">
+        <span>Flask</span>
+        <span>SQLAlchemy</span>
+        <span>OAuth 2.0</span>
+        <span>Rate Limiting</span>
+        <span>Threat Analytics</span>
       </div>
+    </section>
 
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="scan-search" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
-          </div>
-          <h3>Detection Engine</h3>
-          <p>Phát hiện brute force theo ngưỡng cấu hình: số lần thất bại, tần suất, và địa chỉ IP trong thời gian thực.</p>
+    <!-- ── HOW IT WORKS ── -->
+    <section class="how-it-works" id="how-it-works" aria-labelledby="hiw-title">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-label">How it works</p>
+          <h2 class="section-title" id="hiw-title">3 bước phòng thủ tự động</h2>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="shield-off" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+        <div class="hiw-grid">
+          <div class="hiw-step">
+            <div class="hiw-num">01</div>
+            <div class="hiw-icon"><i data-lucide="eye" aria-hidden="true" style="width:22px;height:22px;stroke:#a78bfa;"></i></div>
+            <h3>Phát hiện</h3>
+            <p>Theo dõi mọi lần đăng nhập theo IP và username. Phát hiện bất thường trong vòng &lt;2 giây.</p>
           </div>
-          <h3>Auto IP Blocking</h3>
-          <p>Tự động chặn địa chỉ IP vi phạm. Hỗ trợ block tạm thời và vĩnh viễn với danh sách whitelist linh hoạt.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="layout-dashboard" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+          <div class="hiw-connector" aria-hidden="true"></div>
+          <div class="hiw-step">
+            <div class="hiw-num">02</div>
+            <div class="hiw-icon"><i data-lucide="scan-search" aria-hidden="true" style="width:22px;height:22px;stroke:#a78bfa;"></i></div>
+            <h3>Phân tích</h3>
+            <p>Tính risk score theo ngưỡng cấu hình. Phân loại: bình thường, nghi ngờ, hoặc tấn công.</p>
           </div>
-          <h3>SOC Dashboard</h3>
-          <p>Bảng điều khiển tổng quan với biểu đồ hoạt động, bảng log và cảnh báo thời gian thực.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="terminal" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+          <div class="hiw-connector" aria-hidden="true"></div>
+          <div class="hiw-step">
+            <div class="hiw-num">03</div>
+            <div class="hiw-icon"><i data-lucide="shield-ban" aria-hidden="true" style="width:22px;height:22px;stroke:#a78bfa;"></i></div>
+            <h3>Phản ứng</h3>
+            <p>Tự động block IP, khóa tài khoản và tạo alert — không cần can thiệp thủ công.</p>
           </div>
-          <h3>Attack Simulator</h3>
-          <p>Mô phỏng tấn công brute force để kiểm tra hiệu quả phòng thủ — Red Team vs Blue Team.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="bell-ring" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
-          </div>
-          <h3>Smart Alerts</h3>
-          <p>Cảnh báo thông minh phân loại theo mức độ: Critical, Warning, Info — không bỏ sót sự kiện nào.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i data-lucide="sliders-horizontal" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
-          </div>
-          <h3>Easy Configuration</h3>
-          <p>Tùy chỉnh ngưỡng phát hiện, thời gian khóa và giới hạn rate-limiting qua giao diện quản trị.</p>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ── CTA ── -->
-  <section class="cta-section">
-    <div class="container">
-      <h2>Sẵn sàng bảo vệ hệ thống?</h2>
-      <p>Bắt đầu ngay hôm nay — miễn phí, không cần thẻ tín dụng.</p>
-      <div class="hero-actions">
-        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
-          Get started free
-          <i data-lucide="arrow-right" style="width:15px;height:15px;"></i>
-        </a>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-lg">
-          Sign in
-        </a>
+    <!-- ── LIVE LAB — dữ liệu thật ── -->
+    <section class="live-lab" id="live-lab" aria-labelledby="lab-title">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-label">Live Security Lab</p>
+          <h2 class="section-title" id="lab-title">SOC-style attack visibility in one screen</h2>
+          <p class="section-subtitle">
+            {% if chart_is_demo %}
+              Chưa có dữ liệu tấn công thật. Dưới đây là dữ liệu mô phỏng SOC để minh họa.
+            {% else %}
+              Tổng quan hoạt động đăng nhập bất thường theo thời gian thực từ hệ thống của bạn.
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="lab-grid">
+          <article class="lab-panel lab-panel-main">
+            <header class="lab-panel-head">
+              <div>
+                <p class="lab-panel-title">Failed Login Attempts · 12h</p>
+                <p class="lab-panel-caption">
+                  {% if chart_is_demo %}simulated traffic · chưa có dữ liệu thật{% else %}live data từ login_logs{% endif %}
+                </p>
+              </div>
+              <div class="lab-time-filter" role="group" aria-label="Khoảng thời gian">
+                <button class="time-chip is-active" type="button">12h</button>
+                <button class="time-chip" type="button">24h</button>
+                <button class="time-chip" type="button">7d</button>
+              </div>
+            </header>
+
+            <div class="lab-chart" aria-label="Biểu đồ số lần đăng nhập thất bại theo giờ" role="img">
+              {% for h in chart_bars %}
+              <span class="chart-bar {% if chart_is_demo %}chart-brute{% else %}chart-failed{% endif %}" style="--h: {{ h }}%"></span>
+              {% endfor %}
+            </div>
+
+            <div class="lab-legend">
+              {% if chart_is_demo %}
+                <span><i class="legend-dot dot-brute" aria-hidden="true"></i>Demo data</span>
+                <span class="lab-panel-caption">Chạy attack simulator để thấy data thật</span>
+              {% else %}
+                <span><i class="legend-dot dot-failed" aria-hidden="true"></i>Failed logins</span>
+                <span class="lab-panel-caption">Tổng 12 giờ gần nhất</span>
+              {% endif %}
+            </div>
+          </article>
+
+          <article class="lab-panel lab-panel-side" id="incident-snapshot">
+            <div class="snapshot-top">
+              <p class="lab-panel-title">Incident Snapshot</p>
+              <span class="risk-pill" style="--pill-color: {{ threat_level_color }};">Threat Level: {{ threat_level_label }}</span>
+            </div>
+
+            <div class="metric-row">
+              <span>Blocked IPs</span>
+              <strong>{{ blocked_ips_count }}</strong>
+            </div>
+            <div class="metric-row">
+              <span>Locked Accounts</span>
+              <strong>{{ locked_accounts_count }}</strong>
+            </div>
+            <div class="metric-row">
+              <span>Auto Mitigation</span>
+              <strong>{{ auto_mitigation_pct }}%</strong>
+            </div>
+
+            <div class="source-list">
+              <p class="source-title">Top attack sources</p>
+              {% for src in top_sources %}
+              <div class="source-item">
+                <span>{{ src.ip }}</span>
+                <strong>{{ src.count }} req</strong>
+              </div>
+              {% endfor %}
+            </div>
+          </article>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- ── ATTACK / DEFENSE ── -->
+    <section class="attack-defense" id="attack-defense" aria-labelledby="ad-title">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-label">Blue Team vs Red Team</p>
+          <h2 class="section-title" id="ad-title">Mô phỏng tấn công và phản ứng phòng thủ song song</h2>
+          <p class="section-subtitle">
+            Toàn bộ hành vi được trình bày trực quan theo timeline để demo rõ ràng cho giảng viên và khách xem.
+          </p>
+        </div>
+
+        <div class="ad-grid">
+          <article class="ad-card ad-card-red">
+            <header>
+              <i data-lucide="sword" aria-hidden="true" style="width:18px;height:18px;"></i>
+              <h3>Red Team Actions</h3>
+            </header>
+            <ul>
+              <li><span class="ad-time">09:02</span>Brute-force vào tài khoản admin</li>
+              <li><span class="ad-time">09:04</span>Dictionary attack với wordlist 1,200 mật khẩu</li>
+              <li><span class="ad-time">09:05</span>Credential stuffing từ 3 IP khác nhau</li>
+            </ul>
+          </article>
+
+          <article class="ad-card ad-card-blue">
+            <header>
+              <i data-lucide="shield-check" aria-hidden="true" style="width:18px;height:18px;"></i>
+              <h3>Blue Team Responses</h3>
+            </header>
+            <ul>
+              <li><span class="ad-time">09:02</span>Rate limit kích hoạt sau ngưỡng thất bại</li>
+              <li><span class="ad-time">09:04</span>Khóa tài khoản tạm thời + gửi cảnh báo</li>
+              <li><span class="ad-time">09:05</span>Block IP + ghi incident report tự động</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FEATURES ── -->
+    <section class="features" id="features" aria-labelledby="features-title">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-label">Why PhúNV Security?</p>
+          <h2 class="section-title" id="features-title">Bảo vệ toàn diện ở mọi lớp</h2>
+          <p class="section-subtitle">
+            Từ phát hiện tự động đến phân tích hành vi — tất cả trong một nền tảng duy nhất.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="scan-search" aria-hidden="true" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+            </div>
+            <h3>Detection Engine</h3>
+            <p>Phát hiện brute force theo ngưỡng cấu hình: số lần thất bại, tần suất, và địa chỉ IP trong thời gian thực.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="shield-off" aria-hidden="true" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+            </div>
+            <h3>Auto IP Blocking</h3>
+            <p>Tự động chặn địa chỉ IP vi phạm. Hỗ trợ block tạm thời và vĩnh viễn với danh sách whitelist linh hoạt.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="layout-dashboard" aria-hidden="true" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+            </div>
+            <h3>SOC Dashboard</h3>
+            <p>Bảng điều khiển tổng quan với biểu đồ hoạt động, bảng log và cảnh báo thời gian thực.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="terminal" aria-hidden="true" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+            </div>
+            <h3>Attack Simulator</h3>
+            <p>Mô phỏng tấn công brute force để kiểm tra hiệu quả phòng thủ — Red Team vs Blue Team.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="bell-ring" aria-hidden="true" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+            </div>
+            <h3>Smart Alerts</h3>
+            <p>Cảnh báo thông minh phân loại theo mức độ: Critical, Warning, Info — không bỏ sót sự kiện nào.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="sliders-horizontal" aria-hidden="true" style="width:18px;height:18px;stroke:#a78bfa;stroke-width:1.5;"></i>
+            </div>
+            <h3>Easy Configuration</h3>
+            <p>Tùy chỉnh ngưỡng phát hiện, thời gian khóa và giới hạn rate-limiting qua giao diện quản trị.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CTA ── -->
+    <section class="cta-section" aria-labelledby="cta-title">
+      <div class="container">
+        <h2 id="cta-title">Sẵn sàng bảo vệ hệ thống?</h2>
+        <p>Bắt đầu ngay hôm nay — miễn phí, không cần thẻ tín dụng.</p>
+        <div class="hero-actions">
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+            Get started free
+            <i data-lucide="arrow-right" aria-hidden="true" style="width:15px;height:15px;"></i>
+          </a>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-lg">
+            Sign in
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
   <!-- ── FOOTER ── -->
-  <footer class="footer">
-    <span>© 2025 PhúNV Security. All rights reserved.</span>
-    <span>Built for Security Operations</span>
+  <footer class="footer" aria-label="Site footer">
+    <div class="footer-grid container">
+      <div class="footer-col footer-brand">
+        <a href="{{ url_for('auth.index') }}" class="navbar-brand" aria-label="PhúNV Security">
+          <span class="brand-icon" aria-hidden="true">
+            <span class="brand-monogram">P</span>
+          </span>
+          PhúNV<span class="brand-suffix">&nbsp;Security</span>
+        </a>
+        <p>Hệ thống phát hiện và phòng chống brute force — thiết kế cho Security Operations hiện đại.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#live-lab">Live Lab</a></li>
+          <li><a href="#attack-defense">Attack / Defense</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="{{ url_for('auth.login') }}">Log in</a></li>
+          <li><a href="{{ url_for('auth.register') }}">Get started</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="https://github.com/phunv123/brute-force-login-defense-python" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+          <li><a href="https://flask.palletsprojects.com/" target="_blank" rel="noopener noreferrer">Flask Docs</a></li>
+          <li><a href="https://owasp.org/www-community/attacks/Brute_force_attack" target="_blank" rel="noopener noreferrer">OWASP</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom container">
+      <span>© {{ current_year }} PhúNV Security. All rights reserved.</span>
+      <span>Built for Security Operations</span>
+    </div>
   </footer>
 
-  <script>lucide.createIcons();</script>
 </body>
 </html>

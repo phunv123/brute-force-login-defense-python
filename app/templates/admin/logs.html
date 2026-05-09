@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login Logs — PhúNV Security</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #09090b; --s1: #111113; --s2: #18181d; --s3: #1f1f27;
+      --b1: #27272f; --b2: #1c1c23;
+      --t1: #fafafa; --t2: #a1a1aa; --t3: #52525e;
+      --acc: #6d4aff; --acc2: #8b6fff;
+      --ok: #4ade80; --err: #f87171; --warn: #fbbf24;
+      --r: 6px; --rs: 4px;
+    }
+    body { font-family:"Inter",sans-serif; background:var(--bg); color:var(--t1); display:flex; min-height:100vh; font-size:13px; line-height:1.5; }
+
+    /* ── Sidebar ── */
+    .sidebar { width:200px; flex-shrink:0; background:var(--s1); border-right:1px solid var(--b1); display:flex; flex-direction:column; position:fixed; top:0;left:0;bottom:0; z-index:50; }
+    .brand { display:flex;align-items:center;gap:9px;padding:16px;border-bottom:1px solid var(--b1); }
+    .brand-mark { width:26px;height:26px;border-radius:5px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700; }
+    .brand-name { font-size:12px;font-weight:600; }
+    .brand-sub  { font-size:10px;color:var(--t3);letter-spacing:.4px; }
+    nav.snav { flex:1;padding:8px;overflow-y:auto; }
+    .ngl { font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;padding:10px 8px 4px; }
+    .nl { display:flex;align-items:center;gap:8px;padding:6px 8px;margin-bottom:1px;border-radius:var(--rs);color:var(--t2);text-decoration:none;font-size:12px;transition:all .15s; }
+    .nl:hover { background:var(--s2);color:var(--t1); }
+    .nl.active { background:var(--s2);color:var(--t1);font-weight:500; }
+    .nl .badge-c { margin-left:auto;font-size:9px;padding:1px 5px;background:var(--err);color:#fff;border-radius:9px;font-weight:600; }
+    .sbottom { padding:12px;border-top:1px solid var(--b1); }
+    .urow { display:flex;align-items:center;gap:8px;padding:6px 8px; }
+    .uav { width:24px;height:24px;border-radius:50%;border:1px solid var(--b1);background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600; }
+    .un  { font-size:12px;font-weight:500; }
+    .ur  { font-size:10px;color:var(--t3); }
+    .logout { display:flex;align-items:center;gap:7px;padding:5px 8px;margin-top:2px;border-radius:var(--rs);color:var(--t3);text-decoration:none;font-size:11px; }
+    .logout:hover { background:var(--s2);color:var(--err); }
+
+    /* ── Layout ── */
+    .main { margin-left:200px;flex:1;display:flex;flex-direction:column; }
+    .topbar { height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:0;z-index:40; }
+    .topbar-l { display:flex;align-items:center;gap:8px;font-size:11px;color:var(--t3); }
+    .topbar-r { display:flex;align-items:center;gap:10px; }
+    .crumb { color:var(--t2);font-size:11px; }
+    .sep { color:var(--t3); }
+
+    .page { padding:18px 20px;display:grid;gap:14px; }
+
+    /* ── Stats Row ── */
+    .stats-row { display:grid;grid-template-columns:repeat(4,1fr);gap:12px; }
+    .stat-card { background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:4px; }
+    .stat-label { font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px; }
+    .stat-val { font-size:22px;font-weight:600;letter-spacing:-.5px; }
+    .stat-val.ok { color:var(--ok); }
+    .stat-val.err { color:var(--err); }
+    .stat-val.warn { color:var(--warn); }
+    .stat-sub { font-size:10px;color:var(--t3); }
+
+    /* ── Card ── */
+    .card { background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden; }
+    .card-hd { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid var(--b1); }
+    .card-title { display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500; }
+    .card-meta  { font-size:11px;color:var(--t3); }
+    .card-body  { padding:14px; }
+
+    /* ── Filter bar ── */
+    .filter-bar { display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end; }
+    .fld { display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px; }
+    .fld label { font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px; }
+    .fld input,.fld select {
+      height:32px;border:1px solid var(--b1);border-radius:var(--rs);
+      background:var(--s2);color:var(--t1);padding:0 9px;font-size:11px;
+      outline:none;font-family:inherit;transition:border-color .15s;
+    }
+    .fld input:focus,.fld select:focus { border-color:var(--acc); }
+    .fld input::placeholder { color:var(--t3); }
+    .btn-row { display:flex;gap:6px;align-items:flex-end; }
+    .btn { height:32px;border-radius:var(--rs);font-size:11px;font-weight:500;border:none;cursor:pointer;padding:0 12px;display:inline-flex;align-items:center;gap:5px;text-decoration:none;transition:all .15s; }
+    .btn-primary { background:var(--acc);color:#fff; }
+    .btn-primary:hover { background:var(--acc2); }
+    .btn-ghost { background:var(--s2);border:1px solid var(--b1);color:var(--t2); }
+    .btn-ghost:hover { color:var(--t1); }
+    .btn-export { background:var(--s2);border:1px solid var(--b1);color:var(--ok); }
+    .btn-export:hover { border-color:var(--ok); }
+
+    /* ── Active filters chips ── */
+    .chip-row { display:flex;flex-wrap:wrap;gap:6px; }
+    .chip { display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:9px;font-size:10px;border:1px solid var(--b1);background:var(--s2);color:var(--t2); }
+    .chip .x { cursor:pointer;color:var(--t3);margin-left:2px;font-size:11px; }
+    .chip .x:hover { color:var(--err); }
+
+    /* ── Table ── */
+    .tbl { width:100%;border-collapse:collapse; }
+    .tbl thead th { text-align:left;padding:8px 14px;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1);background:var(--s2);font-weight:500; }
+    .tbl tbody td { padding:9px 14px;border-bottom:1px solid var(--b2);font-size:11.5px;color:var(--t2);vertical-align:middle; }
+    .tbl tbody tr:last-child td { border-bottom:none; }
+    .tbl tbody tr:hover td { background:var(--s3); }
+    .tbl tbody tr.honey-row td { background:rgba(251,191,36,.04); }
+    .tbl tbody tr.honey-row:hover td { background:rgba(251,191,36,.08); }
+    .mono { font-family:'JetBrains Mono',monospace;font-size:11px; }
+    .uname { color:var(--t1);font-weight:500; }
+    .honey-uname { color:var(--warn);font-weight:600; }
+
+    /* ── Status badges ── */
+    .badge { display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:500;border:1px solid; }
+    .badge.success { color:var(--ok);border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.08); }
+    .badge.failed  { color:var(--err);border-color:rgba(248,113,113,.25);background:rgba(248,113,113,.08); }
+    .badge.blocked { color:var(--warn);border-color:rgba(251,191,36,.25);background:rgba(251,191,36,.08); }
+    .badge.other   { color:var(--t3);border-color:var(--b1);background:var(--s2); }
+    .dot { width:5px;height:5px;border-radius:50%; }
+    .dot.success { background:var(--ok); }
+    .dot.failed   { background:var(--err); }
+    .dot.blocked  { background:var(--warn); }
+    .dot.other    { background:var(--t3); }
+    .honey-tag { display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:1px 5px;background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.3);border-radius:3px;margin-left:4px; }
+
+    .ua-cell { max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--t3); }
+
+    /* ── Reason cell ── */
+    .reason { font-size:10px;color:var(--t3); }
+    .reason.bad { color:var(--err); }
+
+    /* ── Empty ── */
+    .empty { padding:40px 14px;text-align:center;color:var(--t3); }
+
+    /* ── Pager ── */
+    .pager { display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-top:1px solid var(--b1); }
+    .pg-info { font-size:11px;color:var(--t3); }
+    .pg-btns { display:flex;gap:4px; }
+    .pg-btn { border:1px solid var(--b1);background:var(--s2);color:var(--t2);border-radius:var(--rs);padding:5px 10px;font-size:11px;text-decoration:none;transition:all .15s; }
+    .pg-btn:hover { color:var(--t1);border-color:var(--acc); }
+    .pg-btn.active-pg { background:var(--acc);border-color:var(--acc);color:#fff; }
+    .pg-btn.disabled  { opacity:.4;pointer-events:none; }
+
+    /* ── Search highlight ── */
+    mark { background:rgba(109,74,255,.3);color:var(--t1);border-radius:2px;padding:0 2px; }
+
+    /* ── Quick stat mini bars ── */
+    .mini-bar { display:inline-block;height:3px;border-radius:2px;vertical-align:middle;margin-left:6px; }
+
+    /* ── Kbd shortcut badge ── */
+    kbd { font-family:inherit;font-size:9px;padding:1px 4px;border:1px solid var(--b1);border-radius:3px;background:var(--s2);color:var(--t3); }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">P</div>
+    <div>
+      <div class="brand-name">PhúNV Security</div>
+      <div class="brand-sub">SOC PLATFORM</div>
+    </div>
+  </div>
+  <nav class="snav">
+    <div class="ngl">Monitor</div>
+    <a href="{{ url_for('auth.dashboard') }}" class="nl">
+      <i data-lucide="layout-dashboard" style="width:13px;height:13px"></i>Overview
+    </a>
+    <a href="{{ url_for('admin.login_logs') }}" class="nl active">
+      <i data-lucide="scroll-text" style="width:13px;height:13px"></i>Login Logs
+    </a>
+    <a href="#" class="nl" style="pointer-events:none;opacity:.5">
+      <i data-lucide="bell" style="width:13px;height:13px"></i>Alerts
+    </a>
+    <div class="ngl">Defense</div>
+    <a href="{{ url_for('admin.blocked_ips') }}" class="nl">
+      <i data-lucide="shield-ban" style="width:13px;height:13px"></i>Blocked IPs
+    </a>
+    <a href="{{ url_for('admin.simulator') }}" class="nl">
+      <i data-lucide="terminal" style="width:13px;height:13px"></i>Simulator
+    </a>
+    <div class="ngl">Config</div>
+    <a href="{{ url_for('admin.settings') }}" class="nl">
+      <i data-lucide="settings-2" style="width:13px;height:13px"></i>Settings
+    </a>
+  </nav>
+  <div class="sbottom">
+    <div class="urow">
+      <div class="uav">{{ current_user.username[0].upper() }}</div>
+      <div><div class="un">{{ current_user.username }}</div><div class="ur">{{ current_user.role }}</div></div>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="logout">
+      <i data-lucide="log-out" style="width:12px;height:12px"></i>Sign out
+    </a>
+  </div>
+</aside>
+
+<!-- ── Main ── -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-l">
+      <i data-lucide="home" style="width:11px;height:11px"></i>
+      <span class="sep">/</span>
+      <span class="crumb">Login Logs</span>
+      {% if status_filter or ip_filter or username_filter %}
+      <span class="sep">·</span>
+      <span style="color:var(--acc);font-size:10px">Filtered</span>
+      {% endif %}
+    </div>
+    <div class="topbar-r">
+      <span style="font-size:10px;color:var(--t3)"><kbd>/</kbd> to search</span>
+      <span style="font-size:10px;color:var(--t3)" id="live-clock"></span>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Records</div>
+        <div class="stat-val">{{ pagination.total }}</div>
+        <div class="stat-sub">all time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Success</div>
+        <div class="stat-val ok">{{ logs | selectattr('status','equalto','success') | list | length }}</div>
+        <div class="stat-sub">this page</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Failed</div>
+        <div class="stat-val err">{{ logs | selectattr('status','equalto','failed') | list | length }}</div>
+        <div class="stat-sub">this page</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Blocked</div>
+        <div class="stat-val warn">{{ logs | selectattr('status','equalto','blocked') | list | length }}</div>
+        <div class="stat-sub">this page</div>
+      </div>
+    </div>
+
+    <!-- Filter Card -->
+    <section class="card">
+      <div class="card-hd">
+        <span class="card-title"><i data-lucide="filter" style="width:13px;height:13px;color:var(--t3)"></i>Filter & Search</span>
+        {% if status_filter or ip_filter or username_filter %}
+        <a href="{{ url_for('admin.login_logs') }}" class="btn btn-ghost" style="font-size:10px;height:26px;padding:0 8px">
+          <i data-lucide="x" style="width:10px;height:10px"></i>Clear all
+        </a>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <form method="get" action="{{ url_for('admin.login_logs') }}" id="filter-form">
+          <div class="filter-bar">
+            <div class="fld" style="max-width:160px">
+              <label for="status">Status</label>
+              <select id="status" name="status" onchange="this.form.submit()">
+                <option value="" {% if not status_filter %}selected{% endif %}>All statuses</option>
+                <option value="success" {% if status_filter=='success' %}selected{% endif %}>✅ Success</option>
+                <option value="failed"  {% if status_filter=='failed'  %}selected{% endif %}>❌ Failed</option>
+                <option value="blocked" {% if status_filter=='blocked' %}selected{% endif %}>🚫 Blocked</option>
+              </select>
+            </div>
+            <div class="fld">
+              <label for="ip">IP Address</label>
+              <input id="ip" name="ip" value="{{ ip_filter }}" placeholder="e.g. 203.0.113 …" autocomplete="off">
+            </div>
+            <div class="fld">
+              <label for="username">Username</label>
+              <input id="username" name="username" value="{{ username_filter }}" placeholder="search username …" autocomplete="off">
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-primary" type="submit">
+                <i data-lucide="search" style="width:11px;height:11px"></i>Apply
+              </button>
+              <a class="btn btn-ghost" href="{{ url_for('admin.login_logs') }}">Reset</a>
+              <a class="btn btn-export" href="{{ url_for('admin.login_logs', status=status_filter, ip=ip_filter, username=username_filter, export='csv') }}" title="Export CSV">
+                <i data-lucide="download" style="width:11px;height:11px"></i>CSV
+              </a>
+            </div>
+          </div>
+        </form>
+
+        {% if status_filter or ip_filter or username_filter %}
+        <div class="chip-row" style="margin-top:10px">
+          {% if status_filter %}
+          <span class="chip">status: <b>{{ status_filter }}</b>
+            <a class="x" href="{{ url_for('admin.login_logs', ip=ip_filter, username=username_filter) }}">✕</a>
+          </span>
+          {% endif %}
+          {% if ip_filter %}
+          <span class="chip">ip: <b>{{ ip_filter }}</b>
+            <a class="x" href="{{ url_for('admin.login_logs', status=status_filter, username=username_filter) }}">✕</a>
+          </span>
+          {% endif %}
+          {% if username_filter %}
+          <span class="chip">user: <b>{{ username_filter }}</b>
+            <a class="x" href="{{ url_for('admin.login_logs', status=status_filter, ip=ip_filter) }}">✕</a>
+          </span>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Logs Table -->
+    <section class="card">
+      <div class="card-hd">
+        <span class="card-title">
+          <i data-lucide="list" style="width:13px;height:13px;color:var(--t3)"></i>
+          Login Activity
+        </span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="card-meta">{{ pagination.total }} records · page {{ pagination.page }}/{{ pagination.pages }}</span>
+          <input id="q" placeholder="Quick filter rows…" style="height:26px;border:1px solid var(--b1);border-radius:var(--rs);background:var(--s2);color:var(--t1);padding:0 8px;font-size:11px;outline:none;width:160px;font-family:inherit" oninput="quickFilter(this.value)">
+        </div>
+      </div>
+
+      {% if logs %}
+      <table class="tbl" id="log-tbl">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Timestamp</th>
+            <th>Username</th>
+            <th>IP Address</th>
+            <th>Status</th>
+            <th>Reason</th>
+            <th>User Agent</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body">
+          {% set offset = (pagination.page - 1) * 20 %}
+          {% for log in logs %}
+          {% set st = log.status if log.status in ['success','failed','blocked'] else 'other' %}
+          {% set is_honey = log.failure_reason == 'simulator_invalid_credentials' and log.username in ['sysadmin','root','admin_backup','administrator','sa'] %}
+          <tr class="{{ 'honey-row' if is_honey else '' }}" data-row>
+            <td class="mono" style="color:var(--t3)">{{ offset + loop.index }}</td>
+            <td class="mono" style="color:var(--t3)">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>
+              <span class="{{ 'honey-uname' if is_honey else 'uname' }}">{{ log.username }}</span>
+              {% if is_honey %}<span class="honey-tag">🍯 HONEY</span>{% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('admin.login_logs', ip=log.ip_address) }}" class="mono" style="color:var(--acc2);text-decoration:none">{{ log.ip_address }}</a>
+            </td>
+            <td>
+              <span class="badge {{ st }}"><span class="dot {{ st }}"></span>{{ log.status }}</span>
+            </td>
+            <td>
+              <span class="reason {{ 'bad' if log.failure_reason else '' }}">{{ log.failure_reason or '—' }}</span>
+            </td>
+            <td class="ua-cell mono">
+              {% if log.user_agent %}{{ log.user_agent[:60] }}{% if log.user_agent|length > 60 %}…{% endif %}{% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty">
+        <i data-lucide="search-x" style="width:28px;height:28px;margin-bottom:8px;opacity:.3"></i><br>
+        No records match current filters.
+      </div>
+      {% endif %}
+
+      {% if pagination.pages > 1 %}
+      <div class="pager">
+        <span class="pg-info">Showing {{ (pagination.page-1)*20 + 1 }}–{{ [(pagination.page)*20, pagination.total]|min }} of {{ pagination.total }}</span>
+        <div class="pg-btns">
+          {% if pagination.has_prev %}
+          <a class="pg-btn" href="{{ url_for('admin.login_logs', page=pagination.prev_num, status=status_filter, ip=ip_filter, username=username_filter) }}">
+            <i data-lucide="chevron-left" style="width:12px;height:12px"></i>
+          </a>
+          {% else %}
+          <span class="pg-btn disabled"><i data-lucide="chevron-left" style="width:12px;height:12px"></i></span>
+          {% endif %}
+
+          {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+              <a class="pg-btn {{ 'active-pg' if p == pagination.page else '' }}"
+                 href="{{ url_for('admin.login_logs', page=p, status=status_filter, ip=ip_filter, username=username_filter) }}">{{ p }}</a>
+            {% else %}
+              <span class="pg-btn disabled">…</span>
+            {% endif %}
+          {% endfor %}
+
+          {% if pagination.has_next %}
+          <a class="pg-btn" href="{{ url_for('admin.login_logs', page=pagination.next_num, status=status_filter, ip=ip_filter, username=username_filter) }}">
+            <i data-lucide="chevron-right" style="width:12px;height:12px"></i>
+          </a>
+          {% else %}
+          <span class="pg-btn disabled"><i data-lucide="chevron-right" style="width:12px;height:12px"></i></span>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </section>
+
+  </div><!-- /.page -->
+</main>
+
+<script>
+lucide.createIcons();
+
+// Live clock
+(function(){
+  const el = document.getElementById('live-clock');
+  function t(){ el.textContent = new Date().toLocaleTimeString('en-GB'); }
+  t(); setInterval(t, 1000);
+})();
+
+// Keyboard shortcut: / to focus search
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+    e.preventDefault();
+    document.getElementById('q').focus();
+  }
+  if (e.key === 'Escape') document.getElementById('q').blur();
+});
+
+// Quick row filter (client-side)
+function quickFilter(q) {
+  const rows = document.querySelectorAll('#tbl-body tr[data-row]');
+  const term = q.toLowerCase().trim();
+  rows.forEach(row => {
+    row.style.display = (!term || row.textContent.toLowerCase().includes(term)) ? '' : 'none';
+  });
+}
+
+// Focus quick filter on load if URL has no filter params
+const url = new URL(window.location);
+if (!url.searchParams.get('status') && !url.searchParams.get('ip') && !url.searchParams.get('username')) {
+  // don't auto-focus to keep UX clean
+}
+</script>
+</body>
+</html>

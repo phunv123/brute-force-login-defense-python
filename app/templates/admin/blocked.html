@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blocked IPs — PhúNV Security</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#09090b;--s1:#111113;--s2:#18181d;--s3:#1f1f27;
+      --b1:#27272f;--b2:#1c1c23;
+      --t1:#fafafa;--t2:#a1a1aa;--t3:#52525e;
+      --acc:#6d4aff;--acc2:#8b6fff;
+      --ok:#4ade80;--err:#f87171;--warn:#fbbf24;
+      --r:6px;--rs:4px;
+    }
+    body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--t1);display:flex;min-height:100vh;font-size:13px;line-height:1.5}
+
+    /* Sidebar */
+    .sidebar{width:200px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50}
+    .brand{display:flex;align-items:center;gap:9px;padding:16px;border-bottom:1px solid var(--b1)}
+    .brand-mark{width:26px;height:26px;border-radius:5px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+    .brand-name{font-size:12px;font-weight:600}.brand-sub{font-size:10px;color:var(--t3);letter-spacing:.4px}
+    nav.snav{flex:1;padding:8px;overflow-y:auto}
+    .ngl{font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;padding:10px 8px 4px}
+    .nl{display:flex;align-items:center;gap:8px;padding:6px 8px;margin-bottom:1px;border-radius:var(--rs);color:var(--t2);text-decoration:none;font-size:12px;transition:all .15s}
+    .nl:hover{background:var(--s2);color:var(--t1)}.nl.active{background:var(--s2);color:var(--t1);font-weight:500}
+    .sbottom{padding:12px;border-top:1px solid var(--b1)}
+    .urow{display:flex;align-items:center;gap:8px;padding:6px 8px}
+    .uav{width:24px;height:24px;border-radius:50%;border:1px solid var(--b1);background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
+    .un{font-size:12px;font-weight:500}.ur{font-size:10px;color:var(--t3)}
+    .logout{display:flex;align-items:center;gap:7px;padding:5px 8px;margin-top:2px;border-radius:var(--rs);color:var(--t3);text-decoration:none;font-size:11px}
+    .logout:hover{background:var(--s2);color:var(--err)}
+
+    /* Layout */
+    .main{margin-left:200px;flex:1;display:flex;flex-direction:column}
+    .topbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:0;z-index:40}
+    .topbar-l{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--t3)}
+    .crumb{color:var(--t2);font-size:11px}
+    .topbar-r{display:flex;align-items:center;gap:12px}
+    .page{padding:18px 20px;display:grid;gap:14px}
+
+    /* Alerts */
+    .flash{padding:10px 14px;border-radius:var(--r);font-size:12px;border:1px solid;display:flex;align-items:center;gap:8px}
+    .flash.success{color:var(--ok);border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.08)}
+    .flash.warning{color:var(--warn);border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08)}
+    .flash.danger{color:var(--err);border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.08)}
+
+    /* Stats */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .stat-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+    .stat-card.red::before{background:var(--err)}
+    .stat-card.warn::before{background:var(--warn)}
+    .stat-card.ok::before{background:var(--ok)}
+    .stat-card.acc::before{background:var(--acc)}
+    .stat-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .stat-val{font-size:24px;font-weight:600;letter-spacing:-.5px}
+    .stat-val.c-red{color:var(--err)}.stat-val.c-warn{color:var(--warn)}.stat-val.c-ok{color:var(--ok)}.stat-val.c-acc{color:var(--acc2)}
+    .stat-sub{font-size:10px;color:var(--t3);margin-top:2px}
+
+    /* Card */
+    .card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+    .card-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid var(--b1)}
+    .card-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500}
+    .card-meta{font-size:11px;color:var(--t3)}
+
+    /* Toolbar */
+    .toolbar{display:flex;align-items:center;gap:8px}
+    .btn{height:30px;border-radius:var(--rs);font-size:11px;font-weight:500;border:1px solid var(--b1);cursor:pointer;padding:0 10px;display:inline-flex;align-items:center;gap:5px;text-decoration:none;transition:all .15s;font-family:inherit}
+    .btn-danger{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4);color:var(--err)}
+    .btn-danger:hover{background:rgba(248,113,113,.2);border-color:var(--err)}
+    .btn-ghost{background:var(--s2);color:var(--t2)}
+    .btn-ghost:hover{color:var(--t1)}
+    .btn-sm{height:26px;padding:0 8px;font-size:10px}
+
+    /* Search input */
+    .search-wrap{position:relative}
+    .search-wrap input{height:30px;border:1px solid var(--b1);border-radius:var(--rs);background:var(--s2);color:var(--t1);padding:0 9px 0 30px;font-size:11px;outline:none;width:180px;font-family:inherit;transition:border-color .15s}
+    .search-wrap input:focus{border-color:var(--acc);width:220px}
+    .search-wrap .si{position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--t3)}
+
+    /* Table */
+    .tbl{width:100%;border-collapse:collapse}
+    .tbl thead th{text-align:left;padding:8px 14px;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1);background:var(--s2);font-weight:500}
+    .tbl thead th:first-child{padding-left:14px}
+    .tbl tbody td{padding:10px 14px;border-bottom:1px solid var(--b2);font-size:11.5px;color:var(--t2);vertical-align:middle}
+    .tbl tbody tr:last-child td{border-bottom:none}
+    .tbl tbody tr:hover td{background:var(--s3)}
+    .tbl tbody tr.expiring td{background:rgba(251,191,36,.03)}
+    .mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+
+    /* IP Cell with copy btn */
+    .ip-cell{display:flex;align-items:center;gap:6px}
+    .copy-btn{cursor:pointer;color:var(--t3);background:none;border:none;padding:2px 4px;border-radius:3px;font-size:10px;opacity:0;transition:opacity .15s}
+    tr:hover .copy-btn{opacity:1}
+    .copy-btn:hover{color:var(--acc2);background:var(--s3)}
+
+    /* Countdown bar */
+    .time-cell{display:flex;flex-direction:column;gap:3px}
+    .countdown-bar{height:3px;border-radius:2px;background:var(--b1);overflow:hidden;width:120px}
+    .countdown-fill{height:100%;border-radius:2px;transition:width .5s}
+    .countdown-fill.danger{background:var(--err)}
+    .countdown-fill.warn{background:var(--warn)}
+    .countdown-fill.ok{background:var(--ok)}
+
+    /* Badge */
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:500;border:1px solid}
+    .badge.auto{color:var(--err);border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.08)}
+    .badge.manual{color:var(--acc2);border-color:rgba(109,74,255,.3);background:rgba(109,74,255,.08)}
+    .badge.permanent{color:var(--t3);border-color:var(--b1);background:var(--s2)}
+    .dot{width:5px;height:5px;border-radius:50%}
+    .dot.auto{background:var(--err)}.dot.manual{background:var(--acc2)}.dot.permanent{background:var(--t3)}
+
+    /* Empty */
+    .empty{padding:50px 14px;text-align:center;color:var(--t3)}
+    .empty-icon{font-size:36px;margin-bottom:10px}
+    .empty-title{font-size:14px;font-weight:500;color:var(--t2);margin-bottom:4px}
+    .empty-sub{font-size:11px}
+
+    /* Confirm modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:24px;width:380px;max-width:90vw}
+    .modal-title{font-size:14px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+    .modal-body{font-size:12px;color:var(--t2);margin-bottom:20px;line-height:1.6}
+    .modal-ip{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--err);font-weight:600}
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end}
+    .btn-confirm{height:34px;padding:0 16px;background:var(--err);border:none;border-radius:var(--rs);color:#fff;font-size:12px;font-weight:500;cursor:pointer}
+    .btn-cancel{height:34px;padding:0 16px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--rs);color:var(--t2);font-size:12px;cursor:pointer}
+    .btn-cancel:hover{color:var(--t1)}
+
+    /* Toast */
+    .toast{position:fixed;bottom:20px;right:20px;background:var(--s1);border:1px solid var(--ok);color:var(--ok);padding:10px 16px;border-radius:var(--r);font-size:12px;z-index:200;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+    .toast.show{opacity:1;transform:translateY(0)}
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">P</div>
+    <div><div class="brand-name">PhúNV Security</div><div class="brand-sub">SOC PLATFORM</div></div>
+  </div>
+  <nav class="snav">
+    <div class="ngl">Monitor</div>
+    <a href="{{ url_for('auth.dashboard') }}" class="nl"><i data-lucide="layout-dashboard" style="width:13px;height:13px"></i>Overview</a>
+    <a href="{{ url_for('admin.login_logs') }}" class="nl"><i data-lucide="scroll-text" style="width:13px;height:13px"></i>Login Logs</a>
+    <a href="#" class="nl" style="pointer-events:none;opacity:.5"><i data-lucide="bell" style="width:13px;height:13px"></i>Alerts</a>
+    <div class="ngl">Defense</div>
+    <a href="{{ url_for('admin.blocked_ips') }}" class="nl active"><i data-lucide="shield-ban" style="width:13px;height:13px"></i>Blocked IPs</a>
+    <a href="{{ url_for('admin.simulator') }}" class="nl"><i data-lucide="terminal" style="width:13px;height:13px"></i>Simulator</a>
+    <div class="ngl">Config</div>
+    <a href="{{ url_for('admin.settings') }}" class="nl"><i data-lucide="settings-2" style="width:13px;height:13px"></i>Settings</a>
+  </nav>
+  <div class="sbottom">
+    <div class="urow">
+      <div class="uav">{{ current_user.username[0].upper() }}</div>
+      <div><div class="un">{{ current_user.username }}</div><div class="ur">{{ current_user.role }}</div></div>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="logout"><i data-lucide="log-out" style="width:12px;height:12px"></i>Sign out</a>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-l">
+      <i data-lucide="home" style="width:11px;height:11px"></i>
+      <span style="color:var(--t3)">/</span>
+      <span class="crumb">Blocked IPs</span>
+    </div>
+    <div class="topbar-r">
+      <span style="font-size:10px;color:var(--t3)" id="live-clock"></span>
+    </div>
+  </div>
+
+  <div class="page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="flash {{ cat }}"><i data-lucide="{{ 'check-circle' if cat=='success' else 'alert-triangle' }}" style="width:14px;height:14px"></i>{{ msg }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card red">
+        <div class="stat-label">Total Blocked</div>
+        <div class="stat-val c-red">{{ blocked_items | length }}</div>
+        <div class="stat-sub">active right now</div>
+      </div>
+      <div class="stat-card warn">
+        <div class="stat-label">Expiring Soon</div>
+        <div class="stat-val c-warn">{{ blocked_items | selectattr('remaining_minutes') | selectattr('remaining_minutes', 'lt', 30) | list | length }}</div>
+        <div class="stat-sub">within 30 min</div>
+      </div>
+      <div class="stat-card acc">
+        <div class="stat-label">Auto-Blocked</div>
+        <div class="stat-val c-acc">{{ blocked_items | selectattr('block_type','equalto','auto') | list | length }}</div>
+        <div class="stat-sub">brute force detected</div>
+      </div>
+      <div class="stat-card ok">
+        <div class="stat-label">Permanent</div>
+        <div class="stat-val c-ok">{{ blocked_items | rejectattr('expires_at') | list | length }}</div>
+        <div class="stat-sub">no expiry set</div>
+      </div>
+    </div>
+
+    <!-- Blocked Table -->
+    <section class="card">
+      <div class="card-hd">
+        <span class="card-title">
+          <i data-lucide="shield-ban" style="width:13px;height:13px;color:var(--err)"></i>
+          Active Blocked IPs
+        </span>
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i data-lucide="search" class="si" style="width:12px;height:12px"></i>
+            <input type="text" placeholder="Search IP or reason…" oninput="quickFilter(this.value)" id="qsearch">
+          </div>
+          <span class="card-meta">{{ blocked_items | length }} active</span>
+        </div>
+      </div>
+
+      {% if blocked_items %}
+      <table class="tbl" id="blocked-tbl">
+        <thead>
+          <tr>
+            <th>IP Address</th>
+            <th>Reason</th>
+            <th>Type</th>
+            <th>Blocked At</th>
+            <th>Expires / Remaining</th>
+            <th style="text-align:right">Action</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body">
+          {% for item in blocked_items %}
+          {% set pct = [(item.remaining_minutes or 0) / 30 * 100, 100] | min %}
+          {% set bar_cls = 'danger' if (item.remaining_minutes or 999) < 5 else ('warn' if (item.remaining_minutes or 999) < 15 else 'ok') %}
+          <tr class="{{ 'expiring' if item.remaining_minutes is not none and item.remaining_minutes < 15 else '' }}" data-row>
+            <td>
+              <div class="ip-cell">
+                <span class="mono" style="color:var(--err)">{{ item.ip_address }}</span>
+                <button class="copy-btn" onclick="copyIP('{{ item.ip_address }}')" title="Copy IP">
+                  <i data-lucide="copy" style="width:10px;height:10px"></i>
+                </button>
+              </div>
+            </td>
+            <td style="max-width:280px;color:var(--t2)">{{ item.reason }}</td>
+            <td>
+              {% set bt = item.block_type or 'auto' %}
+              <span class="badge {{ bt }}"><span class="dot {{ bt }}"></span>{{ bt }}</span>
+            </td>
+            <td class="mono" style="color:var(--t3)">{{ item.blocked_at.strftime('%m-%d %H:%M') }}</td>
+            <td>
+              {% if item.expires_at %}
+              <div class="time-cell">
+                <span class="mono" style="font-size:10px;color:{% if item.remaining_minutes < 10 %}var(--err){% elif item.remaining_minutes < 20 %}var(--warn){% else %}var(--t3){% endif %}">
+                  {{ item.expires_at.strftime('%H:%M:%S') }} — {{ item.remaining_minutes }}m left
+                </span>
+                <div class="countdown-bar">
+                  <div class="countdown-fill {{ bar_cls }}" style="width:{{ [pct,100]|min }}%"></div>
+                </div>
+              </div>
+              {% else %}
+              <span style="font-size:10px;color:var(--t3)">∞ permanent</span>
+              {% endif %}
+            </td>
+            <td style="text-align:right">
+              <button class="btn btn-danger btn-sm" onclick="confirmUnblock('{{ item.ip_address }}')">
+                <i data-lucide="shield-off" style="width:10px;height:10px"></i>Unblock
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% else %}
+      <div class="empty">
+        <div class="empty-icon">🛡️</div>
+        <div class="empty-title">All clear — no blocked IPs</div>
+        <div class="empty-sub">The defense system hasn't blocked any IPs yet.<br>Run the Attack Simulator to generate blocks.</div>
+      </div>
+      {% endif %}
+    </section>
+
+  </div><!-- /.page -->
+</main>
+
+<!-- Hidden unblock forms -->
+{% for item in blocked_items %}
+<form id="form-{{ item.ip_address | replace('.','_') | replace(':','_') }}"
+      method="post" action="{{ url_for('admin.unblock_blocked_ip', ip_address=item.ip_address) }}" style="display:none">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+{% endfor %}
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title"><i data-lucide="shield-off" style="width:16px;height:16px;color:var(--warn)"></i>Confirm Unblock</div>
+    <div class="modal-body">
+      You are about to <b>remove the block</b> for IP address:<br><br>
+      <span class="modal-ip" id="modal-ip">—</span><br><br>
+      This IP will immediately regain access to the login page. This action is logged.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="doUnblock()"><i data-lucide="shield-off" style="width:12px;height:12px;margin-right:4px"></i>Unblock IP</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">✅ IP copied to clipboard</div>
+
+<script>
+lucide.createIcons();
+
+// Live clock
+(function(){const el=document.getElementById('live-clock');function t(){el.textContent=new Date().toLocaleTimeString('en-GB')}t();setInterval(t,1000)})();
+
+// Quick filter
+function quickFilter(q) {
+  const rows = document.querySelectorAll('#tbl-body tr[data-row]');
+  const term = q.toLowerCase();
+  rows.forEach(r => r.style.display = (!term || r.textContent.toLowerCase().includes(term)) ? '' : 'none');
+}
+
+// Modal
+let _pendingIp = null;
+function confirmUnblock(ip) {
+  _pendingIp = ip;
+  document.getElementById('modal-ip').textContent = ip;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  _pendingIp = null;
+}
+function doUnblock() {
+  if (!_pendingIp) return;
+  const fid = 'form-' + _pendingIp.replace(/\./g,'_').replace(/:/g,'_');
+  const form = document.getElementById(fid);
+  if (form) form.submit();
+}
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// Copy IP
+function copyIP(ip) {
+  navigator.clipboard.writeText(ip).then(() => {
+    const t = document.getElementById('toast');
+    t.textContent = `✅ ${ip} copied`;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  });
+}
+
+// Keyboard: Escape closes modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+    e.preventDefault();
+    document.getElementById('qsearch').focus();
+  }
+});
+</script>
+</body>
+</html>

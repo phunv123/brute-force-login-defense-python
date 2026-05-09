@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Attack Lab — PhúNV Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0c;--s1:#111115;--s2:#18181d;--s3:#1f1f26;
+  --b1:#27272f;--b2:#1c1c23;
+  --t1:#f1f1f3;--t2:#8b8b99;--t3:#52525e;
+  --acc:#6d4aff;--acc2:#4f8fff;
+  --ok:#34d399;--err:#f87171;--warn:#fbbf24;
+  --r:6px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);display:flex;min-height:100vh;font-size:13px;line-height:1.5}
+
+/* ── SIDEBAR ── */
+.sb{width:180px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sb-brand{display:flex;align-items:center;gap:8px;padding:14px 12px;border-bottom:1px solid var(--b1)}
+.sb-mark{width:24px;height:24px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.sb-name{font-size:12px;font-weight:600}
+.sb-sub{font-size:9px;color:var(--t3);letter-spacing:.5px}
+.sb-nav{flex:1;padding:6px;overflow-y:auto}
+.nav-lbl{font-size:9px;font-weight:600;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;padding:10px 8px 3px}
+.nav-a{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;color:var(--t2);text-decoration:none;font-size:12px;margin-bottom:1px;transition:background .1s,color .1s}
+.nav-a:hover,.nav-a.on{background:var(--s2);color:var(--t1)}
+.nav-a .badge{margin-left:auto;font-size:10px;background:var(--s3);color:var(--t3);padding:1px 5px;border-radius:3px}
+.sb-foot{padding:10px;border-top:1px solid var(--b1)}
+.sb-user{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:4px}
+.sb-av{width:22px;height:22px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0}
+.sb-uname{font-size:11px;font-weight:500}
+.sb-role{font-size:9px;color:var(--t3)}
+.sb-logout{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;color:var(--t3);text-decoration:none;font-size:11px;margin-top:2px;transition:background .1s,color .1s}
+.sb-logout:hover{background:var(--s2);color:var(--err)}
+
+/* ── MAIN ── */
+.main{margin-left:180px;flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0;gap:12px}
+.topbar-title{font-size:12px;font-weight:500;color:var(--t2)}
+.topbar-r{display:flex;align-items:center;gap:14px}
+.demo-badge{display:flex;align-items:center;gap:5px;padding:3px 8px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);border-radius:4px;font-size:10px;color:var(--warn)}
+.demo-dot{width:5px;height:5px;border-radius:50%;background:var(--warn);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.clk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t3)}
+
+.page{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:14px}
+
+/* ── LAYOUT ── */
+.lab-grid{display:grid;grid-template-columns:340px 1fr;gap:14px;height:calc(100vh - 100px)}
+.lab-config{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:16px}
+.lab-monitor{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);display:flex;flex-direction:column;overflow:hidden}
+
+/* ── CONFIG SECTION ── */
+.config-section{border-bottom:1px solid var(--b2);padding-bottom:14px}
+.config-section:last-child{border-bottom:none;padding-bottom:0}
+.config-label{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+
+.attack-types{display:flex;flex-direction:column;gap:6px}
+.at-option{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;cursor:pointer;transition:border-color .15s}
+.at-option:hover{border-color:var(--b1)}
+.at-option.selected{border-color:var(--acc);background:rgba(109,74,255,.08)}
+.at-radio{width:14px;height:14px;border:2px solid var(--t3);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.at-option.selected .at-radio{border-color:var(--acc)}
+.at-option.selected .at-radio::after{content:'';width:6px;height:6px;background:var(--acc);border-radius:50%}
+.at-info{flex:1}
+.at-name{font-size:12px;font-weight:500;color:var(--t1)}
+.at-desc{font-size:10px;color:var(--t3);margin-top:1px}
+
+.target-input{width:100%;padding:8px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border-color .15s}
+.target-input:focus{border-color:var(--acc)}
+.target-input::placeholder{color:var(--t3)}
+
+.speed-slider{display:flex;align-items:center;gap:10px}
+.speed-track{flex:1;height:4px;background:var(--s2);border-radius:2px;position:relative;cursor:pointer}
+.speed-fill{height:100%;background:var(--acc);border-radius:2px;width:50%}
+.speed-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:4px}
+
+.wordlist-select{width:100%;padding:8px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--t1);font-size:12px;outline:none;cursor:pointer}
+
+.launch-btn{width:100%;padding:12px;background:var(--acc);border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
+.launch-btn:hover{background:#5c3ceb}
+.launch-btn:disabled{background:var(--b1);color:var(--t3);cursor:not-allowed}
+.launch-btn.stop{background:var(--err)}
+.launch-btn.stop:hover{background:#dc2626}
+
+/* ── MONITOR SECTION ── */
+.monitor-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--b1)}
+.monitor-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px}
+.monitor-status{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t3)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.status-dot.active{background:var(--err);animation:pulse 1s infinite}
+.status-dot.idle{background:var(--t3)}
+
+.monitor-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.monitor-panels{display:flex;flex:1;gap:1px;background:var(--b1)}
+.monitor-panel{flex:1;background:var(--s1);display:flex;flex-direction:column}
+.panel-header{padding:10px 14px;border-bottom:1px solid var(--b2);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--t3)}
+.panel-header.red{color:var(--err)}
+.panel-header.blue{color:var(--acc2)}
+.panel-body{flex:1;overflow-y:auto;padding:8px}
+
+/* ── BATTLE LOG ── */
+.log-entry{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--b2);font-size:11px}
+.log-entry:last-child{border-bottom:none}
+.log-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--t3);min-width:55px}
+.log-msg{flex:1;color:var(--t2);line-height:1.4}
+.log-msg .ip{font-family:'JetBrains Mono',monospace;color:var(--err)}
+.log-msg .action{color:var(--warn)}
+.log-msg .blocked{color:var(--err);font-weight:600}
+.log-msg .detected{color:var(--acc)}
+.log-msg .success{color:var(--ok)}
+
+/* ── PROGRESS ── */
+.progress-section{padding:12px 16px;border-top:1px solid var(--b1);background:var(--s2)}
+.progress-bar-wrap{height:8px;background:var(--b2);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--err),var(--warn));border-radius:4px;transition:width .3s}
+.progress-info{display:flex;justify-content:space-between;font-size:11px}
+.progress-stat{color:var(--t2)}
+.progress-percent{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--t1)}
+
+/* ── TEAM PANELS ── */
+.team-stat{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--b2)}
+.team-stat:last-child{border-bottom:none}
+.team-stat-label{font-size:11px;color:var(--t3)}
+.team-stat-value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600}
+
+/* ── HISTORY ── */
+.history-section{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:16px}
+.history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.history-title{font-size:12px;font-weight:600}
+.history-table{width:100%;border-collapse:collapse}
+.history-table th{text-align:left;font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;padding:8px 0;border-bottom:1px solid var(--b2)}
+.history-table td{padding:8px 0;font-size:11px;color:var(--t2);border-bottom:1px solid var(--b2)}
+.history-table tr:last-child td{border-bottom:none}
+.history-table .mono{font-family:'JetBrains Mono',monospace}
+.history-badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:500}
+.history-badge.blocked{background:rgba(248,113,113,.1);color:var(--err)}
+.history-badge.detected{background:rgba(251,191,36,.1);color:var(--warn)}
+.history-badge.allowed{background:rgba(52,211,153,.1);color:var(--ok)}
+
+.empty-state{padding:40px;text-align:center;color:var(--t3)}
+.empty-icon{font-size:32px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-brand">
+    <div class="sb-mark">P</div>
+    <div><div class="sb-name">PhúNV Security</div><div class="sb-sub">SOC PLATFORM</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">{{ _('Monitor') }}</div>
+    <a href="{{ url_for('auth.dashboard') }}" class="nav-a">
+      <i data-lucide="layout-dashboard" style="width:12px;height:12px"></i>{{ _('Overview') }}
+    </a>
+    <a href="#" class="nav-a">
+      <i data-lucide="scroll-text" style="width:12px;height:12px"></i>{{ _('Login Logs') }}
+    </a>
+    <a href="{{ url_for('auth.alerts') }}" class="nav-a">
+      <i data-lucide="bell" style="width:12px;height:12px"></i>{{ _('Alerts') }}
+    </a>
+    <a href="{{ url_for('auth.analytics') }}" class="nav-a">
+      <i data-lucide="bar-chart-2" style="width:12px;height:12px"></i>{{ _('Analytics') }}
+    </a>
+    <div class="nav-lbl">{{ _('Defense') }}</div>
+    <a href="#" class="nav-a">
+      <i data-lucide="shield-ban" style="width:12px;height:12px"></i>{{ _('Blocked IPs') }}
+    </a>
+    <a href="{{ url_for('auth.lab') }}" class="nav-a on">
+      <i data-lucide="terminal" style="width:12px;height:12px"></i>{{ _('Simulator') }}
+    </a>
+    <div class="nav-lbl">{{ _('Config') }}</div>
+    <a href="{{ url_for('auth.settings') }}" class="nav-a">
+      <i data-lucide="settings-2" style="width:12px;height:12px"></i>{{ _('Settings') }}
+    </a>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-user">
+      <div class="sb-av">{{ current_user.username[0].upper() }}</div>
+      <div><div class="sb-uname">{{ current_user.username }}</div><div class="sb-role">{{ current_user.role }}</div></div>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="sb-logout">
+      <i data-lucide="log-out" style="width:11px;height:11px"></i>{{ _('Sign out') }}
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">{{ _('Attack Simulation Lab') }}</span>
+    <div class="topbar-r">
+      <div class="demo-badge"><span class="demo-dot"></span>{{ _('DEMO MODE') }}</div>
+      <span class="clk" id="clk"></span>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="lab-grid">
+      <!-- Config Panel -->
+      <div class="lab-config">
+        <div class="config-section">
+          <div class="config-label">{{ _('Attack Type') }}</div>
+          <div class="attack-types">
+            <div class="at-option selected" data-type="dictionary">
+              <div class="at-radio"></div>
+              <div class="at-info">
+                <div class="at-name">{{ _('Dictionary Attack') }}</div>
+                <div class="at-desc">{{ _('Thử wordlist mật khẩu phổ biến') }}</div>
+              </div>
+            </div>
+            <div class="at-option" data-type="bruteforce">
+              <div class="at-radio"></div>
+              <div class="at-info">
+                <div class="at-name">{{ _('Brute Force') }}</div>
+                <div class="at-desc">{{ _('Thử tất cả ký tự') }}</div>
+              </div>
+            </div>
+            <div class="at-option" data-type="spraying">
+              <div class="at-radio"></div>
+              <div class="at-info">
+                <div class="at-name">{{ _('Password Spraying') }}</div>
+                <div class="at-desc">{{ _('1 password, nhiều usernames') }}</div>
+              </div>
+            </div>
+            <div class="at-option" data-type="stuffing">
+              <div class="at-radio"></div>
+              <div class="at-info">
+                <div class="at-name">{{ _('Credential Stuffing') }}</div>
+                <div class="at-desc">{{ _('Dùng credentials từ data breach') }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-label">{{ _('Target Username') }}</div>
+          <input type="text" class="target-input" id="target-username" placeholder="admin, root, test..." value="admin">
+        </div>
+
+        <div class="config-section">
+          <div class="config-label">{{ _('Password Wordlist') }}</div>
+          <select class="wordlist-select" id="wordlist">
+            <option value="top100">Top 100 passwords</option>
+            <option value="top500">Top 500 passwords</option>
+            <option value="top1000">Top 1000 passwords</option>
+            <option value="rockyou">Rockyou (full)</option>
+          </select>
+        </div>
+
+        <div class="config-section">
+          <div class="config-label">{{ _('Attack Speed') }}</div>
+          <div class="speed-slider">
+            <span style="font-size:10px;color:var(--t3)">Slow</span>
+            <div class="speed-track" id="speed-track">
+              <div class="speed-fill" id="speed-fill" style="width:50%"></div>
+            </div>
+            <span style="font-size:10px;color:var(--t3)">Fast</span>
+          </div>
+        </div>
+
+        <button class="launch-btn" id="launch-btn">
+          <i data-lucide="play" style="width:14px;height:14px"></i>
+          {{ _('Launch Attack') }}
+        </button>
+      </div>
+
+      <!-- Monitor Panel -->
+      <div class="lab-monitor">
+        <div class="monitor-header">
+          <div class="monitor-title">
+            <i data-lucide="activity" style="width:14px;height:14px;color:var(--acc)"></i>
+            {{ _('Live Battle Monitor') }}
+          </div>
+          <div class="monitor-status">
+            <span class="status-dot idle" id="status-dot"></span>
+            <span id="status-text">Ready</span>
+          </div>
+        </div>
+
+        <div class="monitor-body">
+          <div class="monitor-panels">
+            <!-- Red Team -->
+            <div class="monitor-panel">
+              <div class="panel-header red">⚔️ {{ _('Red Team (Attacker)') }}</div>
+              <div class="panel-body" id="red-panel">
+                <div class="empty-state">
+                  <div class="empty-icon">🎯</div>
+                  <div>{{ _('Waiting for attack...') }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Blue Team -->
+            <div class="monitor-panel">
+              <div class="panel-header blue">🛡️ {{ _('Blue Team (Defense)') }}</div>
+              <div class="panel-body" id="blue-panel">
+                <div class="empty-state">
+                  <div class="empty-icon">🛡️</div>
+                  <div>{{ _('Monitoring...') }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress -->
+          <div class="progress-section" id="progress-section" style="display:none">
+            <div class="progress-bar-wrap">
+              <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+            </div>
+            <div class="progress-info">
+              <span class="progress-stat" id="progress-stat">Attempt 0 / 0</span>
+              <span class="progress-percent" id="progress-percent">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="history-section">
+      <div class="history-header">
+        <span class="history-title">📜 {{ _('Session History') }}</span>
+      </div>
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Target</th>
+            <th>Attempts</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody id="history-body">
+          <tr>
+            <td class="mono">14:30:22</td>
+            <td>Dictionary</td>
+            <td class="mono">admin</td>
+            <td>47 / 100</td>
+            <td><span class="history-badge blocked">Blocked</span></td>
+          </tr>
+          <tr>
+            <td class="mono">14:25:15</td>
+            <td>Brute Force</td>
+            <td class="mono">root</td>
+            <td>156 / 1000</td>
+            <td><span class="history-badge detected">Detected</span></td>
+          </tr>
+          <tr>
+            <td class="mono">14:10:08</td>
+            <td>Spraying</td>
+            <td class="mono">admin</td>
+            <td>23 / 50</td>
+            <td><span class="history-badge allowed">Allowed</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+lucide.createIcons();
+
+// Clock
+(function(){const e=document.getElementById('clk');function t(){e.textContent=new Date().toLocaleTimeString('en-GB')}t();setInterval(t,1000)})();
+
+// Attack type selection
+document.querySelectorAll('.at-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.at-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+  });
+});
+
+// Speed slider
+const speedTrack = document.getElementById('speed-track');
+const speedFill = document.getElementById('speed-fill');
+let speed = 50;
+
+speedTrack.addEventListener('click', (e) => {
+  const rect = speedTrack.getBoundingClientRect();
+  speed = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+  speedFill.style.width = speed + '%';
+});
+
+// Attack simulation
+let isRunning = false;
+let attackInterval = null;
+
+const WORDLISTS = {
+  top100: ['password', '123456', '12345678', 'qwerty', '123456789', 'admin', '12345', '1234567', 'letmein', 'football'],
+  top500: ['password', '123456', '12345678', 'qwerty', '123456789', 'admin', '12345', '1234567', 'letmein', 'football', 'monkey', 'dragon', 'master', '111111', 'abc123'],
+  top1000: ['password', '123456', '12345678', 'qwerty', '123456789', 'admin', '12345', '1234567', 'letmein', 'football', 'monkey', 'dragon', 'master', '111111', 'abc123', 'shadow', 'sunshine', 'princess', 'trustno1', 'iloveyou'],
+  rockyou: ['password', '123456', '12345678', 'qwerty', '123456789', 'admin', '12345', '1234567']
+};
+
+const FAILURE_REASONS = ['invalid_credentials', 'account_locked', 'ip_blocked', 'rate_limited'];
+
+document.getElementById('launch-btn').addEventListener('click', function() {
+  if (isRunning) {
+    stopAttack();
+  } else {
+    startAttack();
+  }
+});
+
+function startAttack() {
+  const type = document.querySelector('.at-option.selected').dataset.type;
+  const target = document.getElementById('target-username').value || 'admin';
+  const wordlist = WORDLISTS[document.getElementById('wordlist').value] || WORDLISTS.top100;
+  const attemptsPerSecond = 1 + (speed / 100) * 19; // 1-20/sec
+
+  isRunning = true;
+  document.getElementById('launch-btn').innerHTML = '<i data-lucide="square" style="width:14px;height:14px"></i> Stop';
+  document.getElementById('launch-btn').classList.add('stop');
+  document.getElementById('status-dot').classList.remove('idle');
+  document.getElementById('status-dot').classList.add('active');
+  document.getElementById('status-text').textContent = 'Running';
+  document.getElementById('progress-section').style.display = 'block';
+
+  let attempt = 0;
+  const maxAttempts = wordlist.length;
+  const redPanel = document.getElementById('red-panel');
+  const bluePanel = document.getElementById('blue-panel');
+
+  // Clear panels
+  if (attempt === 0) {
+    redPanel.innerHTML = '';
+    bluePanel.innerHTML = '';
+  }
+
+  const intervalMs = 1000 / attemptsPerSecond;
+  let lastLogTime = Date.now();
+
+  attackInterval = setInterval(() => {
+    attempt++;
+    const password = wordlist[Math.min(attempt - 1, wordlist.length - 1)];
+    const ip = `192.168.1.${Math.floor(Math.random() * 255)}`;
+    const time = new Date().toLocaleTimeString('en-GB');
+
+    // Determine outcome
+    const shouldBlock = attempt > 5 && Math.random() > 0.4;
+    const shouldWarn = attempt > 3 && Math.random() > 0.6;
+    const isDetected = attempt > 3;
+
+    // Red team log
+    const redLog = document.createElement('div');
+    redLog.className = 'log-entry';
+    redLog.innerHTML = `<span class="log-time">${time}</span><span class="log-msg">Attempt <span class="ip">${attempt}</span>: <span class="action">${password}</span> → <span class="${shouldBlock ? 'blocked' : 'success'}">${shouldBlock ? 'BLOCKED' : 'failed'}</span></span>`;
+    redPanel.insertBefore(redLog, redPanel.firstChild);
+
+    // Blue team response
+    if (shouldBlock || shouldWarn || isDetected) {
+      const blueLog = document.createElement('div');
+      blueLog.className = 'log-entry';
+      if (shouldBlock) {
+        blueLog.innerHTML = `<span class="log-time">${time}</span><span class="log-msg"><span class="detected">⚠️ IP ${ip} blocked</span> — ${Math.floor(Math.random() * 30)} min | Risk score: ${Math.floor(Math.random() * 30) + 70}</span>`;
+      } else if (isDetected) {
+        blueLog.innerHTML = `<span class="log-time">${time}</span><span class="log-msg"><span class="detected">🔍 Suspicious: ${attempt} failures</span> — monitoring... | ${remainingAttempts(attempt)} attempts left</span>`;
+      } else {
+        blueLog.innerHTML = `<span class="log-time">${time}</span><span class="log-msg"><span class="action">Rate limit warning</span> — ${remainingAttempts(attempt)} attempts before block</span>`;
+      }
+      bluePanel.insertBefore(blueLog, bluePanel.firstChild);
+    }
+
+    // Update progress
+    const percent = Math.min(100, (attempt / maxAttempts) * 100);
+    document.getElementById('progress-bar').style.width = percent + '%';
+    document.getElementById('progress-stat').textContent = `Attempt ${attempt} / ${maxAttempts}`;
+    document.getElementById('progress-percent').textContent = Math.floor(percent) + '%';
+
+    // Stop at max or when blocked
+    if (attempt >= maxAttempts || (shouldBlock && attempt >= 10)) {
+      stopAttack();
+
+      // Add to history
+      const history = document.getElementById('history-body');
+      const row = document.createElement('tr');
+      const result = shouldBlock ? 'blocked' : (isDetected ? 'detected' : 'allowed');
+      row.innerHTML = `
+        <td class="mono">${new Date().toLocaleTimeString('en-GB')}</td>
+        <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+        <td class="mono">${target}</td>
+        <td>${attempt} / ${maxAttempts}</td>
+        <td><span class="history-badge ${result}">${result.charAt(0).toUpperCase() + result.slice(1)}</span></td>
+      `;
+      history.insertBefore(row, history.firstChild);
+    }
+  }, intervalMs);
+}
+
+function stopAttack() {
+  isRunning = false;
+  if (attackInterval) {
+    clearInterval(attackInterval);
+    attackInterval = null;
+  }
+  document.getElementById('launch-btn').innerHTML = '<i data-lucide="play" style="width:14px;height:14px"></i> Launch Attack';
+  document.getElementById('launch-btn').classList.remove('stop');
+  document.getElementById('status-dot').classList.remove('active');
+  document.getElementById('status-dot').classList.add('idle');
+  document.getElementById('status-text').textContent = 'Completed';
+  lucide.createIcons();
+}
+
+function remainingAttempts(attempt) {
+  return Math.max(0, 5 - attempt);
+}
+</script>
+</body>
+</html>

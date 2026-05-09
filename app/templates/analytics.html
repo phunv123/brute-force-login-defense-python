@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ _('Analytics') }} — PhúNV Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0c;--s1:#111115;--s2:#18181d;--s3:#1f1f26;
+  --b1:#27272f;--b2:#1c1c23;
+  --t1:#f1f1f3;--t2:#8b8b99;--t3:#52525e;
+  --acc:#6d4aff;--acc2:#4f8fff;
+  --ok:#34d399;--err:#f87171;--warn:#fbbf24;--cyan:#06b6d4;
+  --r:6px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);display:flex;min-height:100vh;font-size:13px;line-height:1.5}
+
+/* ── SIDEBAR ── */
+.sb{width:180px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sb-brand{display:flex;align-items:center;gap:8px;padding:14px 12px;border-bottom:1px solid var(--b1)}
+.sb-mark{width:24px;height:24px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.sb-name{font-size:12px;font-weight:600}
+.sb-sub{font-size:9px;color:var(--t3);letter-spacing:.5px}
+.sb-nav{flex:1;padding:6px;overflow-y:auto}
+.nav-lbl{font-size:9px;font-weight:600;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;padding:10px 8px 3px}
+.nav-a{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;color:var(--t2);text-decoration:none;font-size:12px;margin-bottom:1px;transition:background .1s,color .1s}
+.nav-a:hover,.nav-a.on{background:var(--s2);color:var(--t1)}
+.sb-foot{padding:10px;border-top:1px solid var(--b1)}
+.sb-user{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:4px}
+.sb-av{width:22px;height:22px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0}
+.sb-uname{font-size:11px;font-weight:500}
+.sb-role{font-size:9px;color:var(--t3)}
+.sb-logout{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;color:var(--t3);text-decoration:none;font-size:11px;margin-top:2px;transition:background .1s,color .1s}
+.sb-logout:hover{background:var(--s2);color:var(--err)}
+
+/* ── MAIN ── */
+.main{margin-left:180px;flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0}
+.topbar-title{font-size:12px;font-weight:500;color:var(--t2)}
+.topbar-r{display:flex;align-items:center;gap:10px}
+
+.page{padding:16px;display:flex;flex-direction:column;gap:16px}
+
+/* ── HEADER ── */
+.page-header{display:flex;justify-content:space-between;align-items:center}
+.page-title{font-size:16px;font-weight:600}
+.period-select{padding:6px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--t1);font-size:12px;outline:none}
+
+/* ── SECURITY SCORE ── */
+.score-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:20px;display:flex;align-items:center;gap:24px}
+.score-gauge{width:120px;height:120px;position:relative}
+.score-gauge svg{transform:rotate(-90deg)}
+.score-gauge-bg{fill:none;stroke:var(--b2);stroke-width:8}
+.score-gauge-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s}
+.score-value{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.score-details{flex:1}
+.score-title{font-size:14px;font-weight:600;margin-bottom:8px}
+.score-subtitle{font-size:12px;color:var(--t3);margin-bottom:12px}
+.score-factors{display:flex;flex-wrap:wrap;gap:12px}
+.score-factor{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2)}
+.score-factor.good{color:var(--ok)}
+.score-factor.warn{color:var(--warn)}
+.score-factor.bad{color:var(--err)}
+
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:16px}
+.stat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.stat-icon.attacks{background:rgba(248,113,113,.15);color:var(--err)}
+.stat-icon.blocked{background:rgba(251,191,36,.15);color:var(--warn)}
+.stat-icon.prevention{background:rgba(52,211,153,.15);color:var(--ok)}
+.stat-icon.risk{background:rgba(6,182,212,.15);color:var(--cyan)}
+.stat-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.stat-value{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.stat-change{font-size:11px;margin-top:4px}
+.stat-change.up{color:var(--ok)}
+.stat-change.down{color:var(--err)}
+
+/* ── CHARTS GRID ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+.chart-header{padding:14px 16px;border-bottom:1px solid var(--b2);display:flex;justify-content:space-between;align-items:center}
+.chart-title{font-size:12px;font-weight:600}
+.chart-body{padding:16px;height:220px}
+
+/* ── TRENDS ── */
+.trends-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);grid-column:span 2}
+.trends-card .chart-body{height:180px}
+
+/* ── TOP LISTS ── */
+.top-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r)}
+.top-header{padding:14px 16px;border-bottom:1px solid var(--b2);font-size:12px;font-weight:600}
+.top-list{padding:8px 0}
+.top-item{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--b2)}
+.top-item:last-child{border-bottom:none}
+.top-item:hover{background:var(--s2)}
+.top-rank{width:20px;font-size:11px;color:var(--t3);font-weight:600}
+.top-name{flex:1;font-family:'JetBrains Mono',monospace;font-size:12px}
+.top-count{font-size:12px;font-weight:600;color:var(--t1)}
+.top-bar{width:60px;height:4px;background:var(--b2);border-radius:2px;overflow:hidden}
+.top-bar-fill{height:100%;background:var(--acc);border-radius:2px}
+
+/* ── TIME PERIOD TABS ── */
+.time-tabs{display:flex;gap:4px;padding:4px;background:var(--s2);border-radius:6px;width:fit-content}
+.time-tab{padding:6px 14px;font-size:11px;font-weight:500;color:var(--t3);border-radius:4px;cursor:pointer;transition:all .15s}
+.time-tab:hover{color:var(--t2)}
+.time-tab.active{background:var(--acc);color:#fff}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-brand">
+    <div class="sb-mark">P</div>
+    <div><div class="sb-name">PhúNV Security</div><div class="sb-sub">SOC PLATFORM</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">{{ _('Monitor') }}</div>
+    <a href="{{ url_for('auth.dashboard') }}" class="nav-a">
+      <i data-lucide="layout-dashboard" style="width:12px;height:12px"></i>{{ _('Overview') }}
+    </a>
+    <a href="{{ url_for('auth.logs') }}" class="nav-a">
+      <i data-lucide="scroll-text" style="width:12px;height:12px"></i>{{ _('Login Logs') }}
+    </a>
+    <a href="{{ url_for('auth.alerts') }}" class="nav-a">
+      <i data-lucide="bell" style="width:12px;height:12px"></i>{{ _('Alerts') }}
+    </a>
+    <a href="{{ url_for('auth.analytics') }}" class="nav-a on">
+      <i data-lucide="bar-chart-2" style="width:12px;height:12px"></i>{{ _('Analytics') }}
+    </a>
+    <div class="nav-lbl">{{ _('Defense') }}</div>
+    <a href="#" class="nav-a">
+      <i data-lucide="shield-ban" style="width:12px;height:12px"></i>{{ _('Blocked IPs') }}
+    </a>
+    <a href="{{ url_for('auth.lab') }}" class="nav-a">
+      <i data-lucide="terminal" style="width:12px;height:12px"></i>{{ _('Simulator') }}
+    </a>
+    <div class="nav-lbl">{{ _('Config') }}</div>
+    <a href="{{ url_for('auth.users') }}" class="nav-a">
+      <i data-lucide="users" style="width:12px;height:12px"></i>{{ _('Users') }}
+    </a>
+    <a href="{{ url_for('auth.settings') }}" class="nav-a">
+      <i data-lucide="settings-2" style="width:12px;height:12px"></i>{{ _('Settings') }}
+    </a>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-user">
+      <div class="sb-av">{{ current_user.username[0].upper() }}</div>
+      <div><div class="sb-uname">{{ current_user.username }}</div><div class="sb-role">{{ current_user.role }}</div></div>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="sb-logout">
+      <i data-lucide="log-out" style="width:11px;height:11px"></i>{{ _('Sign out') }}
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">{{ _('Analytics') }}</span>
+    <div class="topbar-r">
+      <div class="time-tabs">
+        <span class="time-tab active" data-period="7d">7D</span>
+        <span class="time-tab" data-period="30d">30D</span>
+        <span class="time-tab" data-period="90d">90D</span>
+        <span class="time-tab" data-period="1y">1Y</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="page">
+    <!-- Security Score -->
+    <div class="score-card">
+      <div class="score-gauge">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle class="score-gauge-bg" cx="60" cy="60" r="52"></circle>
+          <circle class="score-gauge-fill" cx="60" cy="60" r="52"
+            stroke="url(#gradient)"
+            stroke-dasharray="326.7"
+            stroke-dashoffset="49"
+            id="score-circle"></circle>
+          <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#34d399"/>
+              <stop offset="50%" stop-color="#fbbf24"/>
+              <stop offset="100%" stop-color="#f87171"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="score-value" id="score-value">{{ [100 - (prevention_rate / 2)|int, 10]|max }}</span>
+      </div>
+      <div class="score-details">
+        <div class="score-title">{{ _('Security Score') }}</div>
+        <div class="score-subtitle">{{ _('Based on actual login data') }}</div>
+        <div class="score-factors">
+          <span class="score-factor good"><i data-lucide="check-circle" style="width:12px;height:12px"></i>{{ prevention_rate }}% attack rate</span>
+          <span class="score-factor {{ 'good' if total_attacks < 100 else 'warn' }}"><i data-lucide="{{ 'check-circle' if total_attacks < 100 else 'alert-triangle' }}" style="width:12px;height:12px"></i>{{ total_attacks }} attacks total</span>
+          <span class="score-factor {{ 'good' if ips_blocked == 0 else 'warn' }}"><i data-lucide="shield" style="width:12px;height:12px"></i>{{ ips_blocked }} IPs blocked</span>
+          <span class="score-factor good"><i data-lucide="check-circle" style="width:12px;height:12px"></i>{{ success_logins }} successful logins</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon attacks"><i data-lucide="target" style="width:18px;height:18px"></i></div>
+        <div class="stat-label">{{ _('Total Attacks') }}</div>
+        <div class="stat-value">{{ "{:,}".format(total_attacks) }}</div>
+        <div class="stat-change up">failed + blocked logins</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blocked"><i data-lucide="shield" style="width:18px;height:18px"></i></div>
+        <div class="stat-label">{{ _('IPs Blocked') }}</div>
+        <div class="stat-value">{{ ips_blocked }}</div>
+        <div class="stat-change {{ 'up' if ips_blocked > 0 else 'down' }}">currently active blocks</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon prevention"><i data-lucide="shield-check" style="width:18px;height:18px"></i></div>
+        <div class="stat-label">{{ _('Attack Rate') }}</div>
+        <div class="stat-value">{{ prevention_rate }}%</div>
+        <div class="stat-change">of all login attempts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon risk"><i data-lucide="log-in" style="width:18px;height:18px"></i></div>
+        <div class="stat-label">{{ _('Successful Logins') }}</div>
+        <div class="stat-value">{{ success_logins }}</div>
+        <div class="stat-change up">out of {{ total_logins }} total</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <!-- Attack Types Pie -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">{{ _('Attack Types Distribution') }}</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="attackTypesChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Top Countries -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">{{ _('Top Attacking Countries') }}</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="countriesChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Attack Trend -->
+      <div class="chart-card trends-card">
+        <div class="chart-header">
+          <span class="chart-title">{{ _('Attack Trend (7 Days)') }}</span>
+        </div>
+        <div class="chart-body">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Lists -->
+    <div class="charts-grid">
+      <div class="top-card">
+        <div class="top-header">{{ _('Top Targeted Users') }}</div>
+        <div class="top-list">
+          {% for username, hits in top_users %}
+          <div class="top-item">
+            <span class="top-rank">{{ loop.index }}</span>
+            <span class="top-name">{{ username }}</span>
+            <span class="top-count">{{ hits }}</span>
+            <div class="top-bar"><div class="top-bar-fill" style="width:{{ (hits / max_user_hits * 100)|int }}%"></div></div>
+          </div>
+          {% else %}
+          <div style="padding:20px;text-align:center;color:var(--t3);font-size:11px">No attack data yet</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="top-card">
+        <div class="top-header">{{ _('Failure Reasons') }}</div>
+        <div class="top-list">
+          {% set total_r = reasons|sum(attribute=1) or 1 %}
+          {% for reason, cnt in reasons %}
+          <div class="top-item">
+            <span class="top-rank">{{ loop.index }}</span>
+            <span class="top-name">{{ reason|replace('_',' ')|title }}</span>
+            <span class="top-count">{{ cnt }}</span>
+            <div class="top-bar"><div class="top-bar-fill" style="width:{{ (cnt / total_r * 100)|int }}%"></div></div>
+          </div>
+          {% else %}
+          <div style="padding:20px;text-align:center;color:var(--t3);font-size:11px">No failure data yet</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+lucide.createIcons();
+
+// Charts initialization
+Chart.defaults.color = '#8b8b99';
+Chart.defaults.borderColor = '#1c1c23';
+
+// Attack Types Pie Chart
+new Chart(document.getElementById('attackTypesChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Dictionary', 'Brute Force', 'Credential Stuffing', 'Password Spraying'],
+    datasets: [{
+      data: [45, 28, 18, 9],
+      backgroundColor: ['#f87171', '#fbbf24', '#06b6d4', '#6d4aff'],
+      borderWidth: 0,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: { padding: 12, usePointStyle: true, pointStyle: 'circle' }
+      }
+    },
+    cutout: '65%'
+  }
+});
+
+// Countries Bar Chart
+new Chart(document.getElementById('countriesChart'), {
+  type: 'bar',
+  data: {
+    labels: ['USA', 'China', 'Russia', 'Brazil', 'India'],
+    datasets: [{
+      label: 'Attacks',
+      data: [423, 312, 287, 198, 156],
+      backgroundColor: '#f87171',
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#1c1c23' }, beginAtZero: true }
+    }
+  }
+});
+
+// Trend Line Chart
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+const gradient = trendCtx.createLinearGradient(0, 0, 0, 200);
+gradient.addColorStop(0, 'rgba(248, 113, 113, 0.3)');
+gradient.addColorStop(1, 'rgba(248, 113, 113, 0)');
+
+new Chart(trendCtx, {
+  type: 'line',
+  data: {
+    labels: {{ days_labels|safe }},
+    datasets: [{
+      label: 'Attacks',
+      data: {{ days_attacks|safe }},
+      borderColor: '#f87171',
+      backgroundColor: gradient,
+      fill: true,
+      tension: 0.4,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+      pointHoverBackgroundColor: '#f87171'
+    }, {
+      label: 'Blocked',
+      data: {{ days_blocked|safe }},
+      borderColor: '#34d399',
+      backgroundColor: 'transparent',
+      borderDash: [5, 5],
+      tension: 0.4,
+      pointRadius: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { intersect: false, mode: 'index' },
+    plugins: {
+      legend: {
+        position: 'top',
+        align: 'end',
+        labels: { usePointStyle: true, pointStyle: 'circle', padding: 20 }
+      }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#1c1c23' }, beginAtZero: true }
+    }
+  }
+});
+
+// Period tabs
+document.querySelectorAll('.time-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    // In production, fetch new data here
+  });
+});
+</script>
+</body>
+</html>

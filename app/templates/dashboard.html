@@ -1,11 +1,753 @@
-{% extends "base.html" %}
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOC Dashboard — PhúNV Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0c;--s1:#111115;--s2:#18181d;--s3:#1f1f26;
+  --b1:#27272f;--b2:#1c1c23;
+  --t1:#f1f1f3;--t2:#8b8b99;--t3:#52525e;
+  --acc:#6d4aff;--acc2:#4f8fff;
+  --ok:#34d399;--err:#f87171;--warn:#fbbf24;
+  --r:5px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);display:flex;min-height:100vh;font-size:13px;line-height:1.5}
 
-{% block title %}Dashboard{% endblock %}
+/* ── SIDEBAR ── */
+.sb{width:180px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sb-brand{display:flex;align-items:center;gap:8px;padding:14px 12px;border-bottom:1px solid var(--b1)}
+.sb-mark{width:24px;height:24px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.sb-name{font-size:12px;font-weight:600}
+.sb-sub{font-size:9px;color:var(--t3);letter-spacing:.5px}
+.sb-nav{flex:1;padding:6px;overflow-y:auto}
+.nav-lbl{font-size:9px;font-weight:600;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;padding:10px 8px 3px}
+.nav-a{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;color:var(--t2);text-decoration:none;font-size:12px;margin-bottom:1px;transition:background .1s,color .1s}
+.nav-a:hover,.nav-a.on{background:var(--s2);color:var(--t1)}
+.nav-a .badge{margin-left:auto;font-size:10px;background:var(--s3);color:var(--t3);padding:1px 5px;border-radius:3px}
+.nav-a .dot-red{width:5px;height:5px;border-radius:50%;background:var(--err);margin-left:auto}
+.sb-foot{padding:10px;border-top:1px solid var(--b1)}
+.sb-user{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:4px}
+.sb-av{width:22px;height:22px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0}
+.sb-uname{font-size:11px;font-weight:500}
+.sb-role{font-size:9px;color:var(--t3)}
+.sb-logout{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;color:var(--t3);text-decoration:none;font-size:11px;margin-top:2px;transition:background .1s,color .1s}
+.sb-logout:hover{background:var(--s2);color:var(--err)}
 
-{% block content %}
-<section class="card">
-    <h2>Dashboard</h2>
-    <p>Xin chào, {{ current_user.username }}.</p>
-    <p>Trang dashboard chi tiết sẽ được phát triển ở issue riêng.</p>
-</section>
-{% endblock %}
+/* ── MAIN ── */
+.main{margin-left:180px;flex:1;display:flex;flex-direction:column;min-width:0}
+
+/* ── TOPBAR ── */
+.topbar{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0;gap:12px}
+.topbar-title{font-size:12px;font-weight:500;color:var(--t2)}
+.topbar-r{display:flex;align-items:center;gap:14px}
+.sys-ok{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t3)}
+.sys-dot{width:5px;height:5px;border-radius:50%;background:var(--ok)}
+.clk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t3)}
+
+/* ── FLASH ── */
+.flash{padding:7px 16px;font-size:12px;border-bottom:1px solid var(--b1)}
+.flash.success{color:var(--ok);background:rgba(52,211,153,.04)}
+.flash.danger{color:var(--err);background:rgba(248,113,113,.04)}
+
+/* ── PAGE ── */
+.page{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
+
+/* ── STAT ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sc{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px}
+.sc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sc-lbl{font-size:10px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+.sc-val{font-size:22px;font-weight:600;letter-spacing:-.5px;line-height:1}
+.sc-sub{font-size:11px;color:var(--t3);margin-top:3px}
+
+/* ── GRID ── */
+.grid2{display:grid;grid-template-columns:1fr 310px;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+
+/* ── CARD ── */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border-bottom:1px solid var(--b1)}
+.card-title{font-size:11px;font-weight:500;display:flex;align-items:center;gap:6px;color:var(--t1)}
+.card-meta{font-size:10px;color:var(--t3)}
+.card-sub{font-size:10px;color:var(--t3);margin-top:1px}
+
+/* ── CHART ── */
+.chart-wrap{padding:12px 13px;height:200px;position:relative}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead th{padding:7px 13px;font-size:10px;font-weight:500;color:var(--t3);text-align:left;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--b1);background:var(--bg)}
+.tbl tbody td{padding:8px 13px;font-size:11px;color:var(--t2);border-bottom:1px solid var(--b2)}
+.tbl tbody tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:var(--s2)}
+
+/* ── STATUS ── */
+.dot5{width:5px;height:5px;border-radius:50%;flex-shrink:0;display:inline-block}
+.g{background:var(--ok)}.r{background:var(--err)}.y{background:var(--warn)}
+.stat-cell{display:flex;align-items:center;gap:5px}
+.mono{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t2)}
+
+/* ── RANK TABLE ── */
+.rank-row{display:flex;align-items:center;gap:8px;padding:7px 13px;border-bottom:1px solid var(--b2);font-size:11px}
+.rank-row:last-child{border-bottom:none}
+.rank-row:hover{background:var(--s2)}
+.rank-n{font-size:10px;color:var(--t3);width:18px;flex-shrink:0}
+.rank-val{flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t2)}
+.rank-count{font-size:11px;color:var(--t1);font-weight:500;margin-right:8px}
+.rank-bar-wrap{width:80px;height:3px;background:var(--b1);border-radius:2px;flex-shrink:0}
+.rank-bar{height:100%;background:var(--acc);border-radius:2px;opacity:.7}
+
+/* ── ALERTS ── */
+.alert-row{display:flex;gap:9px;padding:8px 13px;border-bottom:1px solid var(--b2)}
+.alert-row:last-child{border-bottom:none}
+.alert-row:hover{background:var(--s2)}
+.sev{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.sev.high{background:var(--err)}.sev.medium{background:var(--warn)}.sev.low{background:var(--t3)}
+.alert-msg{font-size:11px;color:var(--t2);line-height:1.5}
+.alert-ts{font-size:10px;color:var(--t3);margin-top:1px}
+.empty{padding:28px 13px;text-align:center;font-size:11px;color:var(--t3)}
+
+/* ── RIGHT COL ── */
+.right-col{display:flex;flex-direction:column;gap:10px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-brand">
+    <div class="sb-mark">P</div>
+    <div><div class="sb-name">PhúNV Security</div><div class="sb-sub">SOC PLATFORM</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">{{ _('Monitor') }}</div>
+    <a href="{{ url_for('auth.dashboard') }}" class="nav-a on">
+      <i data-lucide="layout-dashboard" style="width:12px;height:12px"></i>{{ _('Overview') }}
+    </a>
+    <a href="{{ url_for('auth.logs') }}" class="nav-a">
+      <i data-lucide="scroll-text" style="width:12px;height:12px"></i>{{ _('Login Logs') }}
+      <span class="badge">{{ total_today }}</span>
+    </a>
+    <a href="{{ url_for('auth.alerts') }}" class="nav-a">
+      <i data-lucide="bell" style="width:12px;height:12px"></i>{{ _('Alerts') }}
+      {% if alert_count > 0 %}<span class="dot-red"></span>{% endif %}
+    </a>
+    <a href="{{ url_for('auth.analytics') }}" class="nav-a">
+      <i data-lucide="bar-chart-2" style="width:12px;height:12px"></i>{{ _('Analytics') }}
+    </a>
+    <div class="nav-lbl">{{ _('Defense') }}</div>
+    <a href="{{ url_for('auth.blocked') }}" class="nav-a">
+      <i data-lucide="shield-ban" style="width:12px;height:12px"></i>{{ _('Blocked IPs') }}
+      {% if blocked_count > 0 %}<span class="badge">{{ blocked_count }}</span>{% endif %}
+    </a>
+    <a href="{{ url_for('auth.lab') }}" class="nav-a">
+      <i data-lucide="terminal" style="width:12px;height:12px"></i>{{ _('Simulator') }}
+    </a>
+    <div class="nav-lbl">{{ _('Config') }}</div>
+    <a href="{{ url_for('auth.users') }}" class="nav-a">
+      <i data-lucide="users" style="width:12px;height:12px"></i>{{ _('Users') }}
+    </a>
+    <a href="{{ url_for('auth.settings') }}" class="nav-a">
+      <i data-lucide="settings-2" style="width:12px;height:12px"></i>{{ _('Settings') }}
+    </a>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-user">
+      <div class="sb-av">{{ current_user.username[0].upper() }}</div>
+      <div><div class="sb-uname">{{ current_user.username }}</div><div class="sb-role">{{ current_user.role }}</div></div>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="sb-logout">
+      <i data-lucide="log-out" style="width:11px;height:11px"></i>{{ _('Sign out') }}
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">{{ _('Security Operations Center') }} — {{ _('Overview') }}</span>
+    <div class="topbar-r">
+      <div class="sys-ok"><span class="sys-dot"></span>{{ _('All systems operational') }}</div>
+      <span class="clk" id="clk"></span>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for c,m in messages %}
+      <div class="flash {{ c }}">{{ m }}</div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+
+  <div class="page">
+
+    <!-- Stat cards -->
+    <div class="stat-row">
+      <div class="sc">
+        <div class="sc-head"><span class="sc-lbl">{{ _('Logins today') }}</span><i data-lucide="activity" style="width:13px;height:13px;color:var(--t3)"></i></div>
+        <div class="sc-val">{{ total_today }}</div>
+        <div class="sc-sub">{{ success_today }} {{ _('successful') }}</div>
+      </div>
+      <div class="sc">
+        <div class="sc-head"><span class="sc-lbl">{{ _('Failed attempts') }}</span><i data-lucide="x-circle" style="width:13px;height:13px;color:var(--t3)"></i></div>
+        <div class="sc-val" style="color:{% if failed_today > 10 %}var(--err){% elif failed_today > 3 %}var(--warn){% else %}var(--t1){% endif %}">{{ failed_today }}</div>
+        <div class="sc-sub">{{ _('invalid credentials') }}</div>
+      </div>
+      <div class="sc">
+        <div class="sc-head"><span class="sc-lbl">{{ _('Blocked IPs') }}</span><i data-lucide="shield-ban" style="width:13px;height:13px;color:var(--t3)"></i></div>
+        <div class="sc-val" style="color:{% if blocked_count > 0 %}var(--warn){% else %}var(--t1){% endif %}">{{ blocked_count }}</div>
+        <div class="sc-sub">{{ _('active blocks') }}</div>
+      </div>
+      <div class="sc">
+        <div class="sc-head"><span class="sc-lbl">{{ _('Unread alerts') }}</span><i data-lucide="bell" style="width:13px;height:13px;color:var(--t3)"></i></div>
+        <div class="sc-val" style="color:{% if alert_count > 0 %}var(--err){% else %}var(--t1){% endif %}">{{ alert_count }}</div>
+        <div class="sc-sub">{{ _('require action') }}</div>
+      </div>
+    </div>
+
+    <!-- Row 1: Chart + Right col -->
+    <div class="grid2">
+
+      <!-- Attack volume chart -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title"><i data-lucide="trending-up" style="width:12px;height:12px;color:var(--t3)"></i>{{ _('Attack Volume') }}</div>
+            <div class="card-sub">{{ _('Failed') }} &amp; {{ _('successful') }} — 24 hours</div>
+          </div>
+          <span class="card-meta">24h</span>
+        </div>
+        <div class="chart-wrap"><canvas id="volumeChart"></canvas></div>
+        <!-- Legend -->
+        <div style="display:flex;gap:16px;padding:8px 13px 10px;border-top:1px solid var(--b2)">
+          <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--t3)">
+            <span style="width:20px;height:2px;background:var(--err);border-radius:1px;display:inline-block"></span>{{ _('Failed') }}
+          </span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--t3)">
+            <span style="width:20px;height:2px;background:var(--ok);border-radius:1px;display:inline-block"></span>{{ _('Success') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Right col -->
+      <div class="right-col">
+        <!-- Alerts -->
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title"><i data-lucide="bell" style="width:12px;height:12px;color:var(--t3)"></i>{{ _('Alerts') }}</span>
+            <span class="card-meta">{{ recent_alerts|length }}</span>
+          </div>
+          {% if recent_alerts %}
+            {% for a in recent_alerts %}
+            <div class="alert-row">
+              <span class="sev {{ a.severity }}"></span>
+              <div><div class="alert-msg">{{ a.message }}</div>
+              <div class="alert-ts">{{ a.created_at.strftime('%H:%M · %d %b') }}</div></div>
+            </div>
+            {% endfor %}
+          {% else %}<div class="empty">{{ _('No active alerts') }}</div>{% endif %}
+        </div>
+
+        <!-- Blocked IPs -->
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title"><i data-lucide="shield-ban" style="width:12px;height:12px;color:var(--t3)"></i>{{ _('Blocked IPs') }}</span>
+            <span class="card-meta">{{ blocked_ips|length }}</span>
+          </div>
+          {% if blocked_ips %}
+            {% for b in blocked_ips %}
+            <div class="alert-row">
+              <i data-lucide="ban" style="width:11px;height:11px;color:var(--err);flex-shrink:0;margin-top:2px"></i>
+              <div><div class="mono">{{ b.ip_address }}</div>
+              {% if b.expires_at %}<div class="alert-ts">{{ _('expires') }} {{ b.expires_at.strftime('%H:%M, %d %b') }}</div>{% endif %}</div>
+            </div>
+            {% endfor %}
+          {% else %}<div class="empty">{{ _('No blocked IPs') }}</div>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Top IPs + Top Usernames -->
+    <div class="grid3">
+
+      <!-- Top attacking IPs -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title"><i data-lucide="radar" style="width:12px;height:12px;color:var(--t3)"></i>{{ _('Top Attack Sources') }}</div>
+            <div class="card-sub">{{ _('IPs with most failed attempts') }}</div>
+          </div>
+          <span class="card-meta">{{ _('all time') }}</span>
+        </div>
+        {% if top_ips %}
+          {% for ip, count in top_ips %}
+          <div class="rank-row">
+            <span class="rank-n">{{ loop.index }}</span>
+            <span class="rank-val">{{ ip }}</span>
+            <span class="rank-count">{{ count }}</span>
+            <div class="rank-bar-wrap"><div class="rank-bar" style="width:{{ [((count / total_attacks) * 100)|int, 100]|min }}%"></div></div>
+          </div>
+          {% endfor %}
+        {% else %}<div class="empty">{{ _('No attack data yet') }}</div>{% endif %}
+      </div>
+
+      <!-- Top targeted usernames -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title"><i data-lucide="user-x" style="width:12px;height:12px;color:var(--t3)"></i>{{ _('Top Targeted Accounts') }}</div>
+            <div class="card-sub">{{ _('Usernames most frequently targeted') }}</div>
+          </div>
+          <span class="card-meta">{{ _('all time') }}</span>
+        </div>
+        {% if top_usernames %}
+          {% for uname, count in top_usernames %}
+          <div class="rank-row">
+            <span class="rank-n">{{ loop.index }}</span>
+            <span class="rank-val">{{ uname }}</span>
+            <span class="rank-count">{{ count }}</span>
+            <div class="rank-bar-wrap"><div class="rank-bar" style="width:{{ [((count / total_attacks) * 100)|int, 100]|min }}%;background:var(--acc2)"></div></div>
+          </div>
+          {% endfor %}
+        {% else %}<div class="empty">{{ _('No targeted account data') }}</div>{% endif %}
+      </div>
+    </div>
+
+    <!-- Honey Accounts Panel -->
+    <div class="grid3" style="grid-template-columns:1fr 1fr">
+      <!-- Decoy accounts list -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">🍯 {{ _('Honey Accounts') }} <span style="font-size:9px;color:var(--t3);font-weight:400;margin-left:6px">— {{ _('decoy traps') }}</span></span>
+          <span class="card-meta">{{ honey_accounts|length }} {{ _('traps active') }}</span>
+        </div>
+        {% for u in honey_accounts %}
+        <div class="rank-row" style="display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid var(--b2)">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--warn);flex:1">{{ u.username }}</span>
+          <span style="font-size:10px;color:var(--t3)">{{ u.email }}</span>
+          <span style="font-size:9px;padding:2px 6px;background:rgba(251,191,36,.1);color:var(--warn);border-radius:2px;border:1px solid rgba(251,191,36,.2)">DECOY</span>
+        </div>
+        {% else %}
+        <div class="empty">{{ _('No honey accounts configured') }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Honeypot recent triggers -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">🚨 {{ _('Honeypot Triggers') }}</span>
+          <span class="card-meta">{{ honeypot_alerts|length }} {{ _('recent') }}</span>
+        </div>
+        {% for a in honeypot_alerts %}
+        <div style="padding:7px 14px;border-bottom:1px solid var(--b2);display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:9px;padding:1px 5px;background:rgba(248,113,113,.12);color:var(--err);border-radius:2px;border:1px solid rgba(248,113,113,.3);text-transform:uppercase;letter-spacing:.4px">{{ a.severity }}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--warn)">{{ a.target_username }}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--err)">{{ a.source_ip }}</span>
+          </div>
+          <span style="font-size:10px;color:var(--t3)">{{ a.created_at.strftime('%m-%d %H:%M:%S') }}</span>
+        </div>
+        {% else %}
+        <div class="empty" style="padding:20px;text-align:center">
+          <div style="font-size:24px;margin-bottom:6px">🍯</div>
+          <div style="color:var(--ok);font-size:11px">{{ _('No probes detected') }} — {{ _('traps are clean') }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Cyber Threat Map -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">
+          <i data-lucide="radar" style="width:12px;height:12px;color:var(--err)"></i>
+          {{ _('Threat Radar') }}
+          <span style="font-size:9px;color:var(--t3);font-weight:400;margin-left:6px">— Live attack detection</span>
+        </span>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="radar-pulse"></span>
+            <span style="font-size:10px;color:var(--ok)">LIVE</span>
+          </div>
+          <span class="card-meta" id="geo-meta">0 threats</span>
+        </div>
+      </div>
+      <div id="threat-radar" style="height:420px;background:radial-gradient(ellipse at center, #0d0d12 0%, #050508 100%);overflow:hidden;position:relative">
+        <!-- Radar circles -->
+        <div class="radar-ring ring-1"></div>
+        <div class="radar-ring ring-2"></div>
+        <div class="radar-ring ring-3"></div>
+        <div class="radar-ring ring-4"></div>
+
+        <!-- Radar sweep animation -->
+        <div class="radar-sweep"></div>
+
+        <!-- Center logo -->
+        <div class="radar-center">
+          <i data-lucide="crosshair" style="width:20px;height:20px;color:var(--acc)"></i>
+        </div>
+
+        <!-- Attack points will be injected here -->
+        <div id="radar-points"></div>
+
+        <!-- Threat list overlay -->
+        <div class="radar-threats" id="radar-threats">
+          <div class="threats-header">TOP THREATS</div>
+          <div class="threats-list" id="threats-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Stats footer -->
+        <div class="radar-stats">
+          <div class="stat-item"><span class="stat-num" id="total-attacks">0</span><span class="stat-lbl">Total</span></div>
+          <div class="stat-item"><span class="stat-num" id="countries-hit">0</span><span class="stat-lbl">Countries</span></div>
+          <div class="stat-item"><span class="stat-num" id="blocked-today">0</span><span class="stat-lbl">Blocked</span></div>
+        </div>
+      </div>
+    </div>
+
+    <style>
+    #threat-radar { position: relative; }
+    .radar-ring {
+      position: absolute;
+      border: 1px solid rgba(109, 74, 255, 0.15);
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: pulse-ring 4s ease-out infinite;
+    }
+    .ring-1 { width: 120px; height: 120px; animation-delay: 0s; }
+    .ring-2 { width: 220px; height: 220px; animation-delay: 1s; }
+    .ring-3 { width: 320px; height: 320px; animation-delay: 2s; }
+    .ring-4 { width: 420px; height: 420px; animation-delay: 3s; }
+
+    @keyframes pulse-ring {
+      0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.95); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .radar-sweep {
+      position: absolute;
+      width: 50%; height: 2px;
+      top: 50%; left: 50%;
+      background: linear-gradient(90deg, transparent, var(--acc), var(--ok));
+      transform-origin: left center;
+      animation: sweep 3s linear infinite;
+      box-shadow: 0 0 20px var(--acc);
+    }
+
+    @keyframes sweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .radar-center {
+      position: absolute;
+      width: 40px; height: 40px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(109, 74, 255, 0.2);
+      border: 1px solid var(--acc);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .radar-pulse {
+      width: 6px; height: 6px;
+      background: var(--ok);
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .radar-threats {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 180px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid var(--b1);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .threats-header {
+      padding: 8px 10px;
+      background: rgba(248, 113, 113, 0.1);
+      border-bottom: 1px solid var(--b2);
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--err);
+      letter-spacing: 1px;
+    }
+
+    .threats-list {
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .threat-item {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--b2);
+      font-size: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .threat-item:last-child { border-bottom: none; }
+    .threat-item:hover { background: var(--s2); }
+
+    .threat-ip { font-family: 'JetBrains Mono', monospace; color: var(--err); }
+    .threat-count { color: var(--t2); font-weight: 500; }
+
+    .radar-stats {
+      position: absolute;
+      bottom: 12px; left: 12px;
+      display: flex;
+      gap: 16px;
+    }
+
+    .radar-stats .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .radar-stats .stat-num {
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--t1);
+    }
+
+    .radar-stats .stat-lbl {
+      font-size: 9px;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .attack-dot {
+      position: absolute;
+      width: 8px; height: 8px;
+      background: var(--err);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px var(--err), 0 0 20px var(--err);
+      animation: attack-pulse 1.5s infinite;
+      cursor: pointer;
+    }
+
+    @keyframes attack-pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.5; }
+    }
+
+    .attack-dot::after {
+      content: attr(data-count);
+      position: absolute;
+      top: -18px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      color: var(--err);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    </style>
+
+    <!-- Row 3: Recent logs table -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title"><i data-lucide="list" style="width:12px;height:12px;color:var(--t3)"></i>{{ _('Recent Login Activity') }}</span>
+        <span class="card-meta">{{ recent_logs|length }} {{ _('entries') }}</span>
+      </div>
+      {% if recent_logs %}
+      <table class="tbl">
+        <thead><tr>
+          <th>Timestamp</th><th>Username</th><th>IP Address</th><th>Status</th><th>Reason</th>
+        </tr></thead>
+        <tbody>
+        {% for log in recent_logs %}
+        <tr>
+          <td class="mono" style="color:var(--t3)">{{ log.timestamp.strftime('%m-%d %H:%M:%S') }}</td>
+          <td style="font-weight:500;color:var(--t1)">{{ log.username }}</td>
+          <td class="mono">{{ log.ip_address }}</td>
+          <td>
+            {% if log.status == 'success' %}
+              <div class="stat-cell"><span class="dot5 g"></span><span style="color:var(--ok)">success</span></div>
+            {% elif log.status == 'failed' %}
+              <div class="stat-cell"><span class="dot5 r"></span><span style="color:var(--t2)">failed</span></div>
+            {% else %}
+              <div class="stat-cell"><span class="dot5 y"></span><span>{{ log.status }}</span></div>
+            {% endif %}
+          </td>
+          <td style="color:var(--t3)">{{ log.failure_reason or '—' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<div class="empty">No login records yet</div>{% endif %}
+    </div>
+
+  </div><!-- /.page -->
+</main>
+
+<script>
+lucide.createIcons();
+(function(){const e=document.getElementById('clk');function t(){e.textContent=new Date().toLocaleTimeString('en-GB')}t();setInterval(t,1000)})();
+
+// Chart.js line chart
+const labels  = {{ chart_labels|safe }};
+const failed  = {{ chart_failed|safe }};
+const success = {{ chart_success|safe }};
+
+Chart.defaults.color = '#52525e';
+Chart.defaults.borderColor = '#1c1c23';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 10;
+
+new Chart(document.getElementById('volumeChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Failed',
+        data: failed,
+        borderColor: '#f87171',
+        backgroundColor: 'rgba(248,113,113,0.06)',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Success',
+        data: success,
+        borderColor: '#34d399',
+        backgroundColor: 'rgba(52,211,153,0.04)',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.4,
+        fill: true,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#18181d',
+        borderColor: '#27272f',
+        borderWidth: 1,
+        titleColor: '#8b8b99',
+        bodyColor: '#f1f1f3',
+        padding: 8,
+      }
+    },
+    scales: {
+      x: { grid: { color: '#1c1c23' }, ticks: { maxTicksLimit: 8 } },
+      y: { grid: { color: '#1c1c23' }, beginAtZero: true, ticks: { stepSize: 1 } }
+    }
+  }
+});
+</script>
+
+<!-- Cyber Radar Visualization -->
+<script>
+// Sample attack data - in production, fetch from /api/geo-data
+const attackData = [
+  { ip: '192.168.1.100', lat: 40.7, lng: -74.0, country: 'USA', city: 'New York', count: 247 },
+  { ip: '10.0.0.55', lat: 51.5, lng: -0.1, country: 'UK', city: 'London', count: 183 },
+  { ip: '172.16.0.1', lat: 35.6, lng: 139.6, country: 'Japan', city: 'Tokyo', count: 156 },
+  { ip: '192.168.2.50', lat: 48.8, lng: 2.3, country: 'France', city: 'Paris', count: 134 },
+  { ip: '10.10.10.10', lat: -33.9, lng: 151.2, country: 'Australia', city: 'Sydney', count: 98 },
+  { ip: '192.168.3.25', lat: 52.5, lng: 13.4, country: 'Germany', city: 'Berlin', count: 87 },
+  { ip: '172.20.0.5', lat: 31.2, lng: 121.4, country: 'China', city: 'Shanghai', count: 76 },
+  { ip: '192.168.4.200', lat: -23.5, lng: -46.6, country: 'Brazil', city: 'São Paulo', count: 65 },
+  { ip: '10.1.1.1', lat: 55.7, lng: 37.6, country: 'Russia', city: 'Moscow', count: 54 },
+  { ip: '192.168.5.10', lat: 19.4, lng: -99.1, country: 'Mexico', city: 'Mexico City', count: 43 },
+];
+
+function initRadar() {
+  const container = document.getElementById('radar-points');
+  const radar = document.getElementById('threat-radar');
+  const width = radar.offsetWidth;
+  const height = radar.offsetHeight;
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const maxRadius = 180;
+
+  // Convert lat/lng to radar position (simple equirectangular projection)
+  function toRadarPos(lat, lng) {
+    const x = centerX + (lng / 180) * maxRadius;
+    const y = centerY - (lat / 90) * maxRadius;
+    return { x, y };
+  }
+
+  // Render attack points
+  const maxCount = Math.max(...attackData.map(d => d.count));
+
+  attackData.forEach((attack, index) => {
+    const pos = toRadarPos(attack.lat, attack.lng);
+    const dot = document.createElement('div');
+    dot.className = 'attack-dot';
+    dot.style.left = pos.x + 'px';
+    dot.style.top = pos.y + 'px';
+    dot.style.width = (8 + (attack.count / maxCount) * 8) + 'px';
+    dot.style.height = dot.style.width;
+    dot.setAttribute('data-count', attack.count);
+    dot.title = `${attack.ip}\n${attack.city}, ${attack.country}\n${attack.count} attacks`;
+
+    // Stagger animation
+    dot.style.animationDelay = (index * 0.1) + 's';
+
+    container.appendChild(dot);
+  });
+
+  // Update stats
+  document.getElementById('total-attacks').textContent =
+    attackData.reduce((sum, d) => sum + d.count, 0);
+
+  const countries = [...new Set(attackData.map(d => d.country))].length;
+  document.getElementById('countries-hit').textContent = countries;
+  document.getElementById('blocked-today').textContent = Math.floor(attackData.length * 0.7);
+
+  // Update threat list
+  const threatsList = document.getElementById('threats-list');
+  const topThreats = attackData.slice(0, 5);
+  topThreats.forEach(attack => {
+    const item = document.createElement('div');
+    item.className = 'threat-item';
+    item.innerHTML = `
+      <span class="threat-ip">${attack.ip}</span>
+      <span class="threat-count">${attack.count}</span>
+    `;
+    threatsList.appendChild(item);
+  });
+
+  document.getElementById('geo-meta').textContent = attackData.length + ' sources detected';
+}
+
+// Initialize radar on load
+document.addEventListener('DOMContentLoaded', initRadar);
+</script>
+</body>
+</html>

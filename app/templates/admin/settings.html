@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings — PhúNV Security</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#09090b;--s1:#111113;--s2:#18181d;--s3:#1f1f27;
+      --b1:#27272f;--b2:#1c1c23;
+      --t1:#fafafa;--t2:#a1a1aa;--t3:#52525e;
+      --acc:#6d4aff;--acc2:#8b6fff;
+      --ok:#4ade80;--err:#f87171;--warn:#fbbf24;
+      --r:6px;--rs:4px;
+    }
+    body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--t1);display:flex;min-height:100vh;font-size:13px;line-height:1.5}
+
+    /* Sidebar */
+    .sidebar{width:200px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50}
+    .brand{display:flex;align-items:center;gap:9px;padding:16px;border-bottom:1px solid var(--b1)}
+    .brand-mark{width:26px;height:26px;border-radius:5px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+    .brand-name{font-size:12px;font-weight:600}.brand-sub{font-size:10px;color:var(--t3);letter-spacing:.4px}
+    nav.snav{flex:1;padding:8px}
+    .ngl{font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;padding:10px 8px 4px}
+    .nl{display:flex;align-items:center;gap:8px;padding:6px 8px;margin-bottom:1px;border-radius:var(--rs);color:var(--t2);text-decoration:none;font-size:12px;transition:all .15s}
+    .nl:hover{background:var(--s2);color:var(--t1)}.nl.active{background:var(--s2);color:var(--t1);font-weight:500}
+    .sbottom{padding:12px;border-top:1px solid var(--b1)}
+    .urow{display:flex;align-items:center;gap:8px;padding:6px 8px}
+    .uav{width:24px;height:24px;border-radius:50%;border:1px solid var(--b1);background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
+    .un{font-size:12px;font-weight:500}.ur{font-size:10px;color:var(--t3)}
+    .logout{display:flex;align-items:center;gap:7px;padding:5px 8px;margin-top:2px;border-radius:var(--rs);color:var(--t3);text-decoration:none;font-size:11px}
+    .logout:hover{background:var(--s2);color:var(--err)}
+
+    /* Layout */
+    .main{margin-left:200px;flex:1;display:flex;flex-direction:column}
+    .topbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:0;z-index:40}
+    .topbar-l{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--t3)}
+    .crumb{color:var(--t2);font-size:11px}
+    .page{padding:18px 20px;display:grid;gap:14px;max-width:860px}
+
+    /* Flash */
+    .flash{padding:10px 14px;border-radius:var(--r);font-size:12px;border:1px solid;display:flex;align-items:center;gap:8px}
+    .flash.success{color:var(--ok);border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.08)}
+    .flash.danger{color:var(--err);border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.08)}
+
+    /* Card */
+    .card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+    .card-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--b1)}
+    .card-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600}
+    .card-desc{font-size:11px;color:var(--t3);margin-top:2px}
+    .card-body{padding:20px}
+
+    /* Setting Row */
+    .setting-row{display:grid;grid-template-columns:1fr 220px;gap:24px;align-items:start;padding:16px 0;border-bottom:1px solid var(--b2)}
+    .setting-row:last-child{border-bottom:none;padding-bottom:0}
+    .setting-row:first-child{padding-top:0}
+    .setting-info{}
+    .setting-label{font-size:12px;font-weight:500;color:var(--t1);margin-bottom:3px}
+    .setting-hint{font-size:11px;color:var(--t3);line-height:1.5}
+    .setting-range{font-size:10px;color:var(--acc2);margin-top:3px}
+
+    /* Input group with stepper */
+    .input-group{display:flex;flex-direction:column;gap:6px}
+    .stepper{display:flex;align-items:center;border:1px solid var(--b1);border-radius:var(--rs);overflow:hidden;background:var(--s2)}
+    .stepper button{width:32px;height:36px;background:var(--s3);border:none;color:var(--t2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+    .stepper button:hover{background:var(--acc);color:#fff}
+    .stepper input{flex:1;height:36px;border:none;background:transparent;color:var(--t1);text-align:center;font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace;outline:none}
+    .stepper input::-webkit-inner-spin-button,.stepper input::-webkit-outer-spin-button{-webkit-appearance:none}
+    .unit-label{font-size:10px;color:var(--t3);text-align:center}
+
+    /* Live preview */
+    .preview-card{background:var(--s2);border:1px solid var(--b2);border-radius:var(--rs);padding:14px 16px}
+    .preview-title{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+    .preview-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--b2)}
+    .preview-row:last-child{border-bottom:none}
+    .preview-key{font-size:11px;color:var(--t3)}
+    .preview-val{font-size:11px;font-weight:600;color:var(--warn);font-family:'JetBrains Mono',monospace}
+
+    /* Scenario presets */
+    .presets{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+    .preset-btn{padding:5px 12px;border-radius:var(--rs);font-size:10px;font-weight:600;border:1px solid var(--b1);background:var(--s2);color:var(--t3);cursor:pointer;transition:all .15s;letter-spacing:.4px;text-transform:uppercase}
+    .preset-btn:hover{border-color:var(--acc);color:var(--acc2)}
+    .preset-btn.conservative{border-color:rgba(74,222,128,.3);color:var(--ok);background:rgba(74,222,128,.06)}
+    .preset-btn.balanced{border-color:rgba(109,74,255,.3);color:var(--acc2);background:rgba(109,74,255,.06)}
+    .preset-btn.strict{border-color:rgba(248,113,113,.3);color:var(--err);background:rgba(248,113,113,.06)}
+
+    /* Honey accounts table */
+    .honey-tbl{width:100%;border-collapse:collapse}
+    .honey-tbl th{text-align:left;padding:6px 12px;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1)}
+    .honey-tbl td{padding:8px 12px;border-bottom:1px solid var(--b2);font-size:11.5px}
+    .honey-tbl tr:last-child td{border-bottom:none}
+    .honey-tbl tr:hover td{background:var(--s3)}
+    .mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+    .decoy-badge{font-size:9px;padding:1px 6px;background:rgba(251,191,36,.1);color:var(--warn);border:1px solid rgba(251,191,36,.25);border-radius:3px}
+    .dot-pulse{width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block;position:relative;animation:pulse-dot 2s infinite}
+    @keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(74,222,128,.4)}50%{box-shadow:0 0 0 4px rgba(74,222,128,0)}}
+
+    /* Submit */
+    .form-actions{display:flex;align-items:center;gap:10px;padding-top:4px}
+    .btn-save{height:36px;padding:0 20px;background:var(--acc);border:none;border-radius:var(--rs);color:#fff;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;font-family:inherit}
+    .btn-save:hover{background:var(--acc2)}
+    .btn-reset-form{height:36px;padding:0 14px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--rs);color:var(--t2);font-size:12px;cursor:pointer;font-family:inherit}
+    .btn-reset-form:hover{color:var(--t1)}
+    .save-hint{font-size:10px;color:var(--t3)}
+
+    /* Danger zone */
+    .danger-zone{border:1px solid rgba(248,113,113,.25);border-radius:var(--r);overflow:hidden}
+    .danger-zone .card-hd{background:rgba(248,113,113,.05);border-color:rgba(248,113,113,.25)}
+    .danger-zone .card-title{color:var(--err)}
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">P</div>
+    <div><div class="brand-name">PhúNV Security</div><div class="brand-sub">SOC PLATFORM</div></div>
+  </div>
+  <nav class="snav">
+    <div class="ngl">Monitor</div>
+    <a href="{{ url_for('auth.dashboard') }}" class="nl"><i data-lucide="layout-dashboard" style="width:13px;height:13px"></i>Overview</a>
+    <a href="{{ url_for('admin.login_logs') }}" class="nl"><i data-lucide="scroll-text" style="width:13px;height:13px"></i>Login Logs</a>
+    <a href="#" class="nl" style="pointer-events:none;opacity:.5"><i data-lucide="bell" style="width:13px;height:13px"></i>Alerts</a>
+    <div class="ngl">Defense</div>
+    <a href="{{ url_for('admin.blocked_ips') }}" class="nl"><i data-lucide="shield-ban" style="width:13px;height:13px"></i>Blocked IPs</a>
+    <a href="{{ url_for('admin.simulator') }}" class="nl"><i data-lucide="terminal" style="width:13px;height:13px"></i>Simulator</a>
+    <div class="ngl">Config</div>
+    <a href="{{ url_for('admin.settings') }}" class="nl active"><i data-lucide="settings-2" style="width:13px;height:13px"></i>Settings</a>
+  </nav>
+  <div class="sbottom">
+    <div class="urow">
+      <div class="uav">{{ current_user.username[0].upper() }}</div>
+      <div><div class="un">{{ current_user.username }}</div><div class="ur">{{ current_user.role }}</div></div>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="logout"><i data-lucide="log-out" style="width:12px;height:12px"></i>Sign out</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-l">
+      <i data-lucide="home" style="width:11px;height:11px"></i>
+      <span style="color:var(--t3)">/</span>
+      <span class="crumb">Security Settings</span>
+    </div>
+    <div style="font-size:10px;color:var(--t3)" id="live-clock"></div>
+  </div>
+
+  <div class="page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="flash {{ cat }}">
+          <i data-lucide="{{ 'check-circle' if cat=='success' else 'x-circle' }}" style="width:14px;height:14px"></i>{{ msg }}
+        </div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+
+    <!-- Detection Engine Settings -->
+    <div class="card">
+      <div class="card-hd">
+        <div>
+          <div class="card-title"><i data-lucide="shield" style="width:14px;height:14px;color:var(--acc)"></i>Detection Engine</div>
+          <div class="card-desc">Brute-force detection thresholds and automatic response configuration</div>
+        </div>
+        <span style="font-size:10px;padding:3px 8px;background:rgba(74,222,128,.1);color:var(--ok);border:1px solid rgba(74,222,128,.25);border-radius:99px;display:flex;align-items:center;gap:4px">
+          <span class="dot-pulse"></span>Active
+        </span>
+      </div>
+      <div class="card-body">
+        <!-- Preset Buttons -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Quick Presets</div>
+          <div class="presets">
+            <button type="button" class="preset-btn conservative" onclick="applyPreset(10,30,60)">🌿 Conservative<br><span style="font-size:9px;font-weight:400">10 attempts / 30min / 60min block</span></button>
+            <button type="button" class="preset-btn balanced" onclick="applyPreset(5,10,30)">⚖️ Balanced<br><span style="font-size:9px;font-weight:400">5 attempts / 10min / 30min block</span></button>
+            <button type="button" class="preset-btn strict" onclick="applyPreset(3,5,120)">🔒 Strict<br><span style="font-size:9px;font-weight:400">3 attempts / 5min / 120min block</span></button>
+          </div>
+        </div>
+
+        <form method="post" action="{{ url_for('admin.settings') }}" id="settings-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Max Failed Attempts</div>
+              <div class="setting-hint">Number of failed login attempts allowed before triggering an automatic IP block. Lower values are more aggressive.</div>
+              <div class="setting-range">Range: 1 – 50 attempts</div>
+            </div>
+            <div class="input-group">
+              <div class="stepper">
+                <button type="button" onclick="step('max_attempts',-1)">−</button>
+                <input type="number" id="max_attempts" name="max_attempts"
+                       value="{{ settings.max_attempts }}" min="1" max="50"
+                       oninput="updatePreview()">
+                <button type="button" onclick="step('max_attempts',1)">+</button>
+              </div>
+              <div class="unit-label">attempts</div>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Detection Window</div>
+              <div class="setting-hint">The rolling time window used to count failed logins from the same IP. Shorter windows catch fast attacks; longer windows catch slow, distributed attacks.</div>
+              <div class="setting-range">Range: 1 – 240 minutes</div>
+            </div>
+            <div class="input-group">
+              <div class="stepper">
+                <button type="button" onclick="step('window_minutes',-1)">−</button>
+                <input type="number" id="window_minutes" name="window_minutes"
+                       value="{{ settings.window_minutes }}" min="1" max="240"
+                       oninput="updatePreview()">
+                <button type="button" onclick="step('window_minutes',1)">+</button>
+              </div>
+              <div class="unit-label">minutes</div>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Block Duration</div>
+              <div class="setting-hint">How long an IP remains blocked after triggering the threshold. The block is lifted automatically after this period expires.</div>
+              <div class="setting-range">Range: 1 – 1440 minutes (24h)</div>
+            </div>
+            <div class="input-group">
+              <div class="stepper">
+                <button type="button" onclick="step('block_duration',-5)">−</button>
+                <input type="number" id="block_duration" name="block_duration"
+                       value="{{ settings.block_duration_minutes }}" min="1" max="1440"
+                       oninput="updatePreview()">
+                <button type="button" onclick="step('block_duration',5)">+</button>
+              </div>
+              <div class="unit-label">minutes</div>
+            </div>
+          </div>
+
+          <!-- Live Preview -->
+          <div class="preview-card" style="margin:16px 0">
+            <div class="preview-title"><i data-lucide="eye" style="width:11px;height:11px"></i>Live Preview — Current Policy</div>
+            <div class="preview-row">
+              <span class="preview-key">Block triggers after</span>
+              <span class="preview-val" id="p-attempts">{{ settings.max_attempts }} failed attempts</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-key">Detection window</span>
+              <span class="preview-val" id="p-window">{{ settings.window_minutes }} minutes</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-key">Block duration</span>
+              <span class="preview-val" id="p-block">{{ settings.block_duration_minutes }} minutes ({{ (settings.block_duration_minutes / 60)|round(1) }}h)</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-key">Attack rate threshold</span>
+              <span class="preview-val" id="p-rate">{{ "%.1f"|format(settings.max_attempts / settings.window_minutes) }} attempts/min</span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-save">
+              <i data-lucide="save" style="width:13px;height:13px"></i>Save Settings
+            </button>
+            <button type="button" class="btn-reset-form" onclick="resetForm()">Reset</button>
+            <span class="save-hint">Changes take effect immediately on all new login attempts.</span>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Honey Accounts Info -->
+    <div class="card">
+      <div class="card-hd">
+        <div>
+          <div class="card-title"><i data-lucide="alert-triangle" style="width:14px;height:14px;color:var(--warn)"></i>🍯 Honey Account Traps</div>
+          <div class="card-desc">Decoy accounts that should never receive legitimate login attempts. Any probe creates a CRITICAL alert.</div>
+        </div>
+        <span style="font-size:11px;color:var(--t3)">Read-only — seeded on startup</span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <table class="honey-tbl">
+          <thead>
+            <tr><th>Username</th><th>Email</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% set honey_names = ['admin_backup','sysadmin','root','administrator','sa'] %}
+            {% for name in honey_names %}
+            <tr>
+              <td class="mono" style="color:var(--warn)">{{ name }}</td>
+              <td class="mono" style="color:var(--t3)">{{ name }}@honeypot.internal</td>
+              <td><span class="decoy-badge">🍯 DECOY ACTIVE</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="card danger-zone">
+      <div class="card-hd">
+        <div>
+          <div class="card-title"><i data-lucide="triangle-alert" style="width:14px;height:14px"></i>Danger Zone</div>
+          <div class="card-desc">Destructive actions — use with caution</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(248,113,113,.15)">
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--t1)">Unblock all IPs</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:2px">Immediately remove all active IP blocks. Cannot be undone.</div>
+          </div>
+          <a href="{{ url_for('admin.blocked_ips') }}" style="height:32px;padding:0 12px;background:transparent;border:1px solid rgba(248,113,113,.4);border-radius:var(--rs);color:var(--err);font-size:11px;display:inline-flex;align-items:center;gap:5px;text-decoration:none;transition:all .15s" onmouseover="this.style.background='rgba(248,113,113,.1)'" onmouseout="this.style.background='transparent'">
+            <i data-lucide="shield-off" style="width:11px;height:11px"></i>Manage Blocks
+          </a>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--t1)">View all login logs</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:2px">Full audit trail of all authentication events.</div>
+          </div>
+          <a href="{{ url_for('admin.login_logs') }}" style="height:32px;padding:0 12px;background:transparent;border:1px solid var(--b1);border-radius:var(--rs);color:var(--t2);font-size:11px;display:inline-flex;align-items:center;gap:5px;text-decoration:none;transition:all .15s" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t2)'">
+            <i data-lucide="scroll-text" style="width:11px;height:11px"></i>Open Logs
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+lucide.createIcons();
+(function(){const el=document.getElementById('live-clock');function t(){el.textContent=new Date().toLocaleTimeString('en-GB')}t();setInterval(t,1000)})();
+
+const ORIG = {
+  max_attempts:   {{ settings.max_attempts }},
+  window_minutes: {{ settings.window_minutes }},
+  block_duration: {{ settings.block_duration_minutes }},
+};
+
+function getVal(id) { return parseInt(document.getElementById(id).value) || 0; }
+
+function step(id, delta) {
+  const el = document.getElementById(id);
+  const newVal = Math.max(parseInt(el.min), Math.min(parseInt(el.max), (parseInt(el.value)||0) + delta));
+  el.value = newVal;
+  updatePreview();
+}
+
+function updatePreview() {
+  const a = getVal('max_attempts');
+  const w = getVal('window_minutes');
+  const b = getVal('block_duration');
+  document.getElementById('p-attempts').textContent = `${a} failed attempts`;
+  document.getElementById('p-window').textContent   = `${w} minutes`;
+  document.getElementById('p-block').textContent    = `${b} minutes (${(b/60).toFixed(1)}h)`;
+  document.getElementById('p-rate').textContent     = w > 0 ? `${(a/w).toFixed(1)} attempts/min` : '—';
+}
+
+function applyPreset(attempts, window, block) {
+  document.getElementById('max_attempts').value   = attempts;
+  document.getElementById('window_minutes').value = window;
+  document.getElementById('block_duration').value = block;
+  updatePreview();
+}
+
+function resetForm() {
+  document.getElementById('max_attempts').value   = ORIG.max_attempts;
+  document.getElementById('window_minutes').value = ORIG.window_minutes;
+  document.getElementById('block_duration').value = ORIG.block_duration_minutes;
+  updatePreview();
+}
+</script>
+</body>
+</html>

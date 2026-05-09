@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ _('Settings') }} — PhúNV Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0c;--s1:#111115;--s2:#18181d;--s3:#1f1f26;
+  --b1:#27272f;--b2:#1c1c23;
+  --t1:#f1f1f3;--t2:#8b8b99;--t3:#52525e;
+  --acc:#6d4aff;--acc2:#4f8fff;
+  --ok:#34d399;--err:#f87171;--warn:#fbbf24;
+  --r:6px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);display:flex;min-height:100vh;font-size:13px;line-height:1.5}
+
+/* ── SIDEBAR ── */
+.sb{width:180px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sb-brand{display:flex;align-items:center;gap:8px;padding:14px 12px;border-bottom:1px solid var(--b1)}
+.sb-mark{width:24px;height:24px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.sb-name{font-size:12px;font-weight:600}
+.sb-sub{font-size:9px;color:var(--t3);letter-spacing:.5px}
+.sb-nav{flex:1;padding:6px;overflow-y:auto}
+.nav-lbl{font-size:9px;font-weight:600;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;padding:10px 8px 3px}
+.nav-a{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;color:var(--t2);text-decoration:none;font-size:12px;margin-bottom:1px;transition:background .1s,color .1s}
+.nav-a:hover,.nav-a.on{background:var(--s2);color:var(--t1)}
+.sb-foot{padding:10px;border-top:1px solid var(--b1)}
+.sb-user{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:4px}
+.sb-av{width:22px;height:22px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0}
+.sb-uname{font-size:11px;font-weight:500}
+.sb-role{font-size:9px;color:var(--t3)}
+.sb-logout{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;color:var(--t3);text-decoration:none;font-size:11px;margin-top:2px;transition:background .1s,color .1s}
+.sb-logout:hover{background:var(--s2);color:var(--err)}
+
+/* ── MAIN ── */
+.main{margin-left:180px;flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0}
+.topbar-title{font-size:12px;font-weight:500;color:var(--t2)}
+
+.page{padding:16px;display:flex;flex-direction:column;gap:16px}
+
+/* ── SETTINGS LAYOUT ── */
+.settings-grid{display:grid;grid-template-columns:200px 1fr;gap:16px}
+.settings-nav{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:8px;height:fit-content}
+.settings-nav-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:4px;color:var(--t2);cursor:pointer;font-size:12px;transition:background .1s,color .1s}
+.settings-nav-item:hover{background:var(--s2);color:var(--t1)}
+.settings-nav-item.active{background:rgba(109,74,255,.1);color:var(--acc)}
+.settings-content{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:20px}
+
+/* ── SECTION ── */
+.settings-section{margin-bottom:24px}
+.settings-section:last-child{margin-bottom:0}
+.section-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-title i{color:var(--t3)}
+
+/* ── FORM ── */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:11px;font-weight:500;color:var(--t2);margin-bottom:6px}
+.form-input{width:100%;padding:10px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--t1);font-size:13px;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--acc)}
+.form-select{width:100%;padding:10px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--t1);font-size:13px;outline:none;cursor:pointer}
+
+/* ── TOGGLE ── */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--b2)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-info{flex:1}
+.toggle-label{font-size:13px;font-weight:500;color:var(--t1)}
+.toggle-desc{font-size:11px;color:var(--t3);margin-top:2px}
+.toggle{width:40px;height:22px;background:var(--b2);border-radius:11px;position:relative;cursor:pointer;transition:background .2s}
+.toggle.active{background:var(--acc)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform .2s}
+.toggle.active::after{transform:translateX(18px)}
+
+/* ── LANGUAGE SELECTOR ── */
+.lang-options{display:flex;gap:12px}
+.lang-option{flex:1;padding:16px;background:var(--s2);border:2px solid var(--b2);border-radius:var(--r);cursor:pointer;transition:border-color .15s,background .15s;text-align:center}
+.lang-option:hover{border-color:var(--b1)}
+.lang-option.active{border-color:var(--acc);background:rgba(109,74,255,.08)}
+.lang-flag{font-size:28px;margin-bottom:8px}
+.lang-name{font-size:13px;font-weight:600;color:var(--t1)}
+.lang-native{font-size:11px;color:var(--t3)}
+
+/* ── BTN ── */
+.btn-save{padding:10px 20px;background:var(--acc);border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.btn-save:hover{background:#5c3ceb}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat-box{background:var(--s2);border:1px solid var(--b2);border-radius:4px;padding:14px}
+.stat-box-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.stat-box-value{font-size:20px;font-weight:600;font-family:'JetBrains Mono',monospace}
+
+/* ── SUCCESS MSG ── */
+.save-msg{padding:10px 14px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:4px;color:var(--ok);font-size:12px;display:none;margin-bottom:16px}
+.save-msg.show{display:block}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-brand">
+    <div class="sb-mark">P</div>
+    <div><div class="sb-name">PhúNV Security</div><div class="sb-sub">SOC PLATFORM</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">{{ _('Monitor') }}</div>
+    <a href="{{ url_for('auth.dashboard') }}" class="nav-a">
+      <i data-lucide="layout-dashboard" style="width:12px;height:12px"></i>{{ _('Overview') }}
+    </a>
+    <a href="#" class="nav-a">
+      <i data-lucide="scroll-text" style="width:12px;height:12px"></i>{{ _('Login Logs') }}
+    </a>
+    <a href="{{ url_for('auth.alerts') }}" class="nav-a">
+      <i data-lucide="bell" style="width:12px;height:12px"></i>{{ _('Alerts') }}
+    </a>
+    <a href="{{ url_for('auth.analytics') }}" class="nav-a">
+      <i data-lucide="bar-chart-2" style="width:12px;height:12px"></i>{{ _('Analytics') }}
+    </a>
+    <div class="nav-lbl">{{ _('Defense') }}</div>
+    <a href="#" class="nav-a">
+      <i data-lucide="shield-ban" style="width:12px;height:12px"></i>{{ _('Blocked IPs') }}
+    </a>
+    <a href="{{ url_for('auth.lab') }}" class="nav-a">
+      <i data-lucide="terminal" style="width:12px;height:12px"></i>{{ _('Simulator') }}
+    </a>
+    <div class="nav-lbl">{{ _('Config') }}</div>
+    <a href="{{ url_for('auth.settings') }}" class="nav-a on">
+      <i data-lucide="settings-2" style="width:12px;height:12px"></i>{{ _('Settings') }}
+    </a>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-user">
+      <div class="sb-av">{{ current_user.username[0].upper() }}</div>
+      <div><div class="sb-uname">{{ current_user.username }}</div><div class="sb-role">{{ current_user.role }}</div></div>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="sb-logout">
+      <i data-lucide="log-out" style="width:11px;height:11px"></i>{{ _('Sign out') }}
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">{{ _('Security Settings') }}</span>
+  </div>
+
+  <div class="page">
+    <div class="save-msg" id="save-msg">{{ _('Settings saved successfully!') }}</div>
+
+    <div class="settings-grid">
+      <!-- Settings Nav -->
+      <div class="settings-nav">
+        <div class="settings-nav-item active" data-section="general">
+          <i data-lucide="settings" style="width:14px;height:14px"></i>{{ _('General') }}
+        </div>
+        <div class="settings-nav-item" data-section="security">
+          <i data-lucide="shield" style="width:14px;height:14px"></i>{{ _('Security') }}
+        </div>
+        <div class="settings-nav-item" data-section="notifications">
+          <i data-lucide="bell" style="width:14px;height:14px"></i>{{ _('Notifications') }}
+        </div>
+        <div class="settings-nav-item" data-section="language">
+          <i data-lucide="globe" style="width:14px;height:14px"></i>{{ _('Language') }}
+        </div>
+      </div>
+
+      <!-- Settings Content -->
+      <div class="settings-content">
+        <!-- General Section -->
+        <div class="settings-section" id="section-general">
+          <h3 class="section-title"><i data-lucide="settings" style="width:16px;height:16px"></i>{{ _('General Settings') }}</h3>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <div class="stat-box-label">{{ _('Total Users') }}</div>
+              <div class="stat-box-value">12</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-label">{{ _('Blocked IPs') }}</div>
+              <div class="stat-box-value">8</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-label">{{ _('Honey Accounts') }}</div>
+              <div class="stat-box-value">5</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-label">{{ _('Alerts Today') }}</div>
+              <div class="stat-box-value">23</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ _('Organization Name') }}</label>
+            <input type="text" class="form-input" value="PhúNV Security" id="org-name">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ _('Timezone') }}</label>
+            <select class="form-select" id="timezone">
+              <option value="Asia/Ho_Chi_Minh" selected>Asia/Ho Chi Minh (UTC+7)</option>
+              <option value="UTC">UTC</option>
+              <option value="America/New_York">America/New York (UTC-5)</option>
+              <option value="Europe/London">Europe/London (UTC+0)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Security Section -->
+        <div class="settings-section" id="section-security" style="display:none">
+          <h3 class="section-title"><i data-lucide="shield" style="width:16px;height:16px"></i>{{ _('Security Policies') }}</h3>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">{{ _('Auto Block IPs') }}</div>
+              <div class="toggle-desc">{{ _('Automatically block IPs after threshold') }}</div>
+            </div>
+            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">{{ _('Account Locking') }}</div>
+              <div class="toggle-desc">{{ _('Lock accounts after failed attempts') }}</div>
+            </div>
+            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">{{ _('Honeypot Protection') }}</div>
+              <div class="toggle-desc">{{ _('Enable decoy accounts to detect attackers') }}</div>
+            </div>
+            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">{{ _('Two-Factor Auth') }}</div>
+              <div class="toggle-desc">{{ _('Require 2FA for all users') }}</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('active')"></div>
+          </div>
+
+          <div class="form-group" style="margin-top:16px">
+            <label class="form-label">{{ _('Max Failed Attempts') }}</label>
+            <input type="number" class="form-input" value="5" style="width:120px">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ _('Block Duration (minutes)') }}</label>
+            <input type="number" class="form-input" value="30" style="width:120px">
+          </div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="settings-section" id="section-notifications" style="display:none">
+          <h3 class="section-title"><i data-lucide="bell" style="width:16px;height:16px"></i>{{ _('Notification Settings') }}</h3>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">{{ _('Email Alerts') }}</div>
+              <div class="toggle-desc">{{ _('Send email when attack detected') }}</div>
+            </div>
+            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">{{ _('Dashboard Alerts') }}</div>
+              <div class="toggle-desc">{{ _('Show alerts in dashboard') }}</div>
+            </div>
+            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">{{ _('Slack Integration') }}</div>
+              <div class="toggle-desc">{{ _('Send notifications to Slack') }}</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('active')"></div>
+          </div>
+
+          <div class="form-group" style="margin-top:16px">
+            <label class="form-label">{{ _('Alert Email') }}</label>
+            <input type="email" class="form-input" value="admin@phunv.local" placeholder="admin@example.com">
+          </div>
+        </div>
+
+        <!-- Language Section -->
+        <div class="settings-section" id="section-language" style="display:none">
+          <h3 class="section-title"><i data-lucide="globe" style="width:16px;height:16px"></i>{{ _('Language & Region') }}</h3>
+
+          <div class="lang-options">
+            <div class="lang-option {% if get_locale() != 'en' %}active{% endif %}" data-lang="vi" onclick="selectLanguage('vi', this)">
+              <div class="lang-flag">🇻🇳</div>
+              <div class="lang-name">Vietnamese</div>
+              <div class="lang-native">Tiếng Việt</div>
+            </div>
+            <div class="lang-option {% if get_locale() == 'en' %}active{% endif %}" data-lang="en" onclick="selectLanguage('en', this)">
+              <div class="lang-flag">🇬🇧</div>
+              <div class="lang-name">English</div>
+              <div class="lang-native">English</div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:20px">
+            <label class="form-label">{{ _('Date Format') }}</label>
+            <select class="form-select" id="date-format">
+              <option value="dd/mm/yyyy">DD/MM/YYYY (15/01/2024)</option>
+              <option value="mm/dd/yyyy">MM/DD/YYYY (01/15/2024)</option>
+              <option value="yyyy-mm-dd">YYYY-MM-DD (2024-01-15)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ _('Time Format') }}</label>
+            <select class="form-select" id="time-format">
+              <option value="24h">24-hour (14:30)</option>
+              <option value="12h">12-hour (2:30 PM)</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-save" onclick="saveSettings()">{{ _('Save Changes') }}</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+lucide.createIcons();
+
+// Navigation
+document.querySelectorAll('.settings-nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+
+    const section = item.dataset.section;
+    document.querySelectorAll('.settings-section').forEach(s => s.style.display = 'none');
+    document.getElementById('section-' + section).style.display = 'block';
+  });
+});
+
+// Language selection
+function selectLanguage(lang, el) {
+  document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+
+  // Call server to set language
+  fetch('/set-language/' + lang, { method: 'GET', credentials: 'same-origin' })
+    .then(response => {
+      if (response.ok) {
+        // Show save message
+        document.getElementById('save-msg').textContent = lang === 'vi' ?
+          'Cài đặt ngôn ngữ đã được lưu! Tải lại trang để áp dụng.' :
+          'Language setting saved! Reload page to apply.';
+        document.getElementById('save-msg').classList.add('show');
+
+        // Reload page after short delay to apply new language
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    });
+}
+
+// Save settings
+function saveSettings() {
+  document.getElementById('save-msg').textContent = '{{ _("Settings saved successfully!") }}';
+  document.getElementById('save-msg').classList.add('show');
+  setTimeout(() => document.getElementById('save-msg').classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

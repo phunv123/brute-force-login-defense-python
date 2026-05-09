@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Attack Simulator — PhúNV Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0c;--s1:#111115;--s2:#18181d;--s3:#1f1f26;
+  --b1:#27272f;--b2:#1c1c23;
+  --t1:#f1f1f3;--t2:#8b8b99;--t3:#52525e;
+  --acc:#6d4aff;--acc2:#4f8fff;
+  --ok:#34d399;--err:#f87171;--warn:#fbbf24;
+  --r:5px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);display:flex;min-height:100vh;font-size:13px;line-height:1.5}
+
+/* SIDEBAR */
+.sb{width:180px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sb-brand{display:flex;align-items:center;gap:8px;padding:14px 12px;border-bottom:1px solid var(--b1)}
+.sb-mark{width:24px;height:24px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.sb-name{font-size:12px;font-weight:600}
+.sb-sub{font-size:9px;color:var(--t3);letter-spacing:.5px}
+.sb-nav{flex:1;padding:6px;overflow-y:auto}
+.nav-lbl{font-size:9px;font-weight:600;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;padding:10px 8px 3px}
+.nav-a{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;color:var(--t2);text-decoration:none;font-size:12px;margin-bottom:1px;transition:background .1s,color .1s}
+.nav-a:hover,.nav-a.on{background:var(--s2);color:var(--t1)}
+.sb-foot{padding:10px;border-top:1px solid var(--b1)}
+.sb-user{display:flex;align-items:center;gap:7px;padding:5px 6px}
+.sb-av{width:22px;height:22px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600}
+.sb-uname{font-size:11px;font-weight:500}
+.sb-role{font-size:9px;color:var(--t3)}
+.sb-logout{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;color:var(--t3);text-decoration:none;font-size:11px;margin-top:2px;transition:background .1s,color .1s}
+.sb-logout:hover{background:var(--s2);color:var(--err)}
+
+/* MAIN */
+.main{margin-left:180px;flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0}
+.topbar-title{font-size:12px;font-weight:500;color:var(--t2)}
+.topbar-r{display:flex;align-items:center;gap:10px}
+.warn-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--warn);background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);padding:3px 8px;border-radius:3px}
+
+.page{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:12px}
+
+/* ATTACK TYPE SELECTOR */
+.attack-types{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:4px}
+.at-card{border:1px solid var(--b1);border-radius:var(--r);padding:10px 11px;cursor:pointer;transition:border-color .15s,background .15s;background:var(--s1)}
+.at-card:hover{border-color:var(--acc);background:var(--s2)}
+.at-card.selected{border-color:var(--acc);background:rgba(109,74,255,.07)}
+.at-card input{display:none}
+.at-icon{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.at-name{font-size:11px;font-weight:500;color:var(--t1)}
+.at-desc{font-size:10px;color:var(--t3);line-height:1.4;margin-top:2px}
+.at-tag{font-size:9px;font-weight:600;letter-spacing:.4px;padding:1px 5px;border-radius:2px;margin-top:4px;display:inline-block}
+.at-tag.easy{background:rgba(52,211,153,.12);color:var(--ok)}
+.at-tag.hard{background:rgba(248,113,113,.12);color:var(--err)}
+.at-tag.medium{background:rgba(251,191,36,.12);color:var(--warn)}
+
+/* CONFIG FORM */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--b1)}
+.card-title{font-size:11px;font-weight:500;display:flex;align-items:center;gap:6px}
+.form-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;padding:12px 13px;align-items:end}
+.fld label{display:block;font-size:10px;color:var(--t3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.fld input,.fld select{width:100%;height:32px;border:1px solid var(--b1);border-radius:4px;background:var(--bg);color:var(--t1);padding:0 9px;font-size:12px;font-family:'Inter',sans-serif;outline:none}
+.fld input:focus,.fld select:focus{border-color:var(--acc)}
+.btn-run{height:32px;background:var(--acc);border:none;color:#fff;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;padding:0 16px;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:opacity .15s}
+.btn-run:disabled{opacity:.5;cursor:not-allowed}
+.btn-stop{height:32px;background:transparent;border:1px solid var(--err);color:var(--err);border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;padding:0 12px}
+
+/* PROGRESS */
+.progress-bar-wrap{height:3px;background:var(--b2)}
+.progress-bar{height:100%;background:var(--acc);width:0;transition:width .3s}
+
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.sc{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:12px 13px}
+.sc-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.sc-val{font-size:20px;font-weight:600;letter-spacing:-.5px;line-height:1}
+.sc-sub{font-size:10px;color:var(--t3);margin-top:2px}
+
+/* LOG FEED */
+.log-feed{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg);max-height:400px;overflow-y:auto;padding:10px 13px;display:flex;flex-direction:column;gap:3px}
+.log-line{display:flex;gap:10px;padding:3px 0;border-bottom:1px solid var(--b2)}
+.log-line:last-child{border-bottom:none}
+.log-ts{color:var(--t3);flex-shrink:0;width:85px}
+.log-n{color:var(--t3);flex-shrink:0;width:36px}
+.log-st{flex-shrink:0;width:60px}
+.log-st.failed{color:var(--warn)}
+.log-st.blocked{color:var(--err);font-weight:500}
+.log-st.honey{color:#fbbf24;font-weight:600}
+.log-act{flex-shrink:0;width:110px;color:var(--t2)}
+.log-msg{color:var(--t2);flex:1}
+.log-empty{color:var(--t3);text-align:center;padding:24px 0}
+.log-blocked-line{color:var(--err);padding:6px 0;font-weight:500;border-top:1px solid rgba(248,113,113,.2);margin-top:4px}
+.mitre-tag{font-size:9px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:4px;letter-spacing:.3px}
+.scenario-btn{height:22px;background:transparent;border:1px solid var(--b1);color:var(--t3);border-radius:3px;font-size:10px;font-weight:600;cursor:pointer;padding:0 8px;letter-spacing:.5px;transition:border-color .15s,color .15s}
+.scenario-btn:hover{border-color:var(--ok);color:var(--ok)}
+.scenario-btn.warn:hover{border-color:var(--warn);color:var(--warn)}
+.scenario-btn.danger:hover{border-color:var(--err);color:var(--err)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-brand">
+    <div class="sb-mark">P</div>
+    <div><div class="sb-name">PhúNV Security</div><div class="sb-sub">SOC PLATFORM</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">Monitor</div>
+    <a href="{{ url_for('auth.dashboard') }}" class="nav-a"><i data-lucide="layout-dashboard" style="width:12px;height:12px"></i>Overview</a>
+    <a href="{{ url_for('admin.login_logs') }}" class="nav-a"><i data-lucide="scroll-text" style="width:12px;height:12px"></i>Login Logs</a>
+    <div class="nav-lbl">Defense</div>
+    <a href="{{ url_for('admin.blocked_ips') }}" class="nav-a"><i data-lucide="shield-ban" style="width:12px;height:12px"></i>Blocked IPs</a>
+    <a href="{{ url_for('admin.simulator') }}" class="nav-a on"><i data-lucide="terminal" style="width:12px;height:12px"></i>Simulator</a>
+    <div class="nav-lbl">Config</div>
+    <a href="{{ url_for('admin.settings') }}" class="nav-a"><i data-lucide="settings-2" style="width:12px;height:12px"></i>Settings</a>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-user">
+      <div class="sb-av">{{ current_user.username[0].upper() }}</div>
+      <div><div class="sb-uname">{{ current_user.username }}</div><div class="sb-role">{{ current_user.role }}</div></div>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="sb-logout"><i data-lucide="log-out" style="width:11px;height:11px"></i>Sign out</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">Attack Simulation Console</span>
+    <div class="topbar-r">
+      <div class="warn-badge"><i data-lucide="triangle-alert" style="width:11px;height:11px"></i>Lab environment — controlled simulation only</div>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <!-- Attack type selector -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title"><i data-lucide="crosshair" style="width:12px;height:12px;color:var(--t3)"></i>Select Attack Type</span>
+      </div>
+      <div style="padding:12px 13px">
+        <div class="attack-types" id="attack-types">
+
+          <label class="at-card selected">
+            <input type="radio" name="attack_type" value="dictionary" checked>
+            <div class="at-icon"><i data-lucide="book-open" style="width:13px;height:13px;color:var(--warn)"></i></div>
+            <div class="at-name">Dictionary</div>
+            <div class="at-desc">Thử danh sách password phổ biến</div>
+            <span class="at-tag easy">EASY TO DETECT</span>
+            <div class="mitre-tag">MITRE T1110.001</div>
+          </label>
+
+          <label class="at-card">
+            <input type="radio" name="attack_type" value="credential_stuffing">
+            <div class="at-icon"><i data-lucide="database" style="width:13px;height:13px;color:var(--err)"></i></div>
+            <div class="at-name">Credential Stuffing</div>
+            <div class="at-desc">Dùng user/pass từ data breach</div>
+            <span class="at-tag medium">MEDIUM RISK</span>
+            <div class="mitre-tag">MITRE T1110.004</div>
+          </label>
+
+          <label class="at-card">
+            <input type="radio" name="attack_type" value="slow_brute">
+            <div class="at-icon"><i data-lucide="timer" style="width:13px;height:13px;color:var(--acc)"></i></div>
+            <div class="at-name">Slow Brute Force</div>
+            <div class="at-desc">Thử chậm để né detection window</div>
+            <span class="at-tag hard">HARD TO DETECT</span>
+            <div class="mitre-tag">MITRE T1110.001 (L&S)</div>
+          </label>
+
+          <label class="at-card">
+            <input type="radio" name="attack_type" value="targeted">
+            <div class="at-icon"><i data-lucide="user-x" style="width:13px;height:13px;color:var(--err)"></i></div>
+            <div class="at-name">Targeted Attack</div>
+            <div class="at-desc">Nhắm vào một tài khoản cụ thể</div>
+            <span class="at-tag hard">PERSISTENT</span>
+            <div class="mitre-tag">MITRE T1110.003</div>
+          </label>
+
+          <label class="at-card">
+            <input type="radio" name="attack_type" value="enumeration">
+            <div class="at-icon"><i data-lucide="scan" style="width:13px;height:13px;color:var(--t2)"></i></div>
+            <div class="at-name">Enumeration</div>
+            <div class="at-desc">Dò username hợp lệ trong hệ thống</div>
+            <span class="at-tag easy">RECON PHASE</span>
+            <div class="mitre-tag">MITRE T1589.001</div>
+          </label>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Config + Run -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title"><i data-lucide="sliders-horizontal" style="width:12px;height:12px;color:var(--t3)"></i>Attack Parameters</span>
+        <div style="display:flex;gap:6px">
+          <button class="scenario-btn" onclick="setScenario('low')">LOW</button>
+          <button class="scenario-btn warn" onclick="setScenario('medium')">MEDIUM</button>
+          <button class="scenario-btn danger" onclick="setScenario('high')">HIGH</button>
+        </div>
+      </div>
+      <form id="sim-form">
+        <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
+        <div class="form-row">
+          <div class="fld">
+            <label>Target Username</label>
+            <input id="target_username" placeholder="admin" required value="admin">
+          </div>
+          <div class="fld">
+            <label>Number of Attempts</label>
+            <input id="num_attempts" type="number" min="1" max="30" value="10" required>
+          </div>
+          <div class="fld">
+            <label>Delay between attempts (ms)</label>
+            <input id="delay_ms" type="number" min="0" max="3000" value="200">
+          </div>
+          <div class="fld" style="display:flex;gap:6px">
+            <button type="submit" id="run-btn" class="btn-run">
+              <i data-lucide="play" style="width:11px;height:11px"></i>Run Attack
+            </button>
+          </div>
+        </div>
+      </form>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-row">
+      <div class="sc">
+        <div class="sc-lbl">Attack Type</div>
+        <div class="sc-val" id="s-type" style="font-size:13px;color:var(--warn)">—</div>
+      </div>
+      <div class="sc">
+        <div class="sc-lbl">Target</div>
+        <div class="sc-val" id="s-target" style="font-size:13px">—</div>
+      </div>
+      <div class="sc">
+        <div class="sc-lbl">Attacker IP</div>
+        <div class="sc-val" id="s-ip" style="font-size:12px;font-family:'JetBrains Mono',monospace">—</div>
+      </div>
+      <div class="sc">
+        <div class="sc-lbl">Executed</div>
+        <div class="sc-val" id="s-count">0</div>
+        <div class="sc-sub">attempts</div>
+      </div>
+      <div class="sc">
+        <div class="sc-lbl">IP Blocked</div>
+        <div class="sc-val" id="s-blocked">—</div>
+      </div>
+    </div>
+
+    <!-- Live log -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">
+          <i data-lucide="terminal" style="width:12px;height:12px;color:var(--t3)"></i>
+          Live Attack Log
+        </span>
+        <span id="log-status" style="font-size:10px;color:var(--t3)">Waiting to run...</span>
+      </div>
+      <div class="log-feed" id="log-feed">
+        <div class="log-empty">Chọn attack type → điền params → nhấn Run Attack</div>
+      </div>
+    </div>
+
+    <!-- Blue vs Red Timeline (shown after simulation) -->
+    <div class="card" id="bvr-card" style="display:none">
+      <div class="card-head">
+        <span class="card-title"><i data-lucide="swords" style="width:12px;height:12px;color:var(--t3)"></i>Blue vs Red Timeline</span>
+        <div id="defense-gauge" style="display:flex;align-items:center;gap:12px">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="26" fill="none" stroke="var(--b1)" stroke-width="4"/>
+            <circle id="gauge-circle" cx="32" cy="32" r="26" fill="none" stroke="var(--ok)" stroke-width="4"
+              stroke-dasharray="163" stroke-dashoffset="163"
+              stroke-linecap="round" transform="rotate(-90 32 32)"
+              style="transition:stroke-dashoffset 1s ease,stroke 0.5s"/>
+            <text x="32" y="37" text-anchor="middle" font-size="13" font-weight="600" fill="var(--t1)" id="gauge-pct">0%</text>
+          </svg>
+          <div>
+            <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px">Defense Score</div>
+            <div id="gauge-grade" style="font-size:20px;font-weight:700;color:var(--ok)">—</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--b1)">
+        <div style="border-right:1px solid var(--b1)">
+          <div style="padding:8px 13px;font-size:10px;font-weight:600;color:var(--err);letter-spacing:.5px;border-bottom:1px solid var(--b2);display:flex;align-items:center;gap:6px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--err);display:inline-block"></span>RED TEAM — Attacker
+          </div>
+          <div id="red-feed" style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:8px 13px;display:flex;flex-direction:column;gap:2px;max-height:280px;overflow-y:auto"></div>
+        </div>
+        <div>
+          <div style="padding:8px 13px;font-size:10px;font-weight:600;color:var(--acc2);letter-spacing:.5px;border-bottom:1px solid var(--b2);display:flex;align-items:center;gap:6px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--acc2);display:inline-block"></span>BLUE TEAM — Defender
+          </div>
+          <div id="blue-feed" style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:8px 13px;display:flex;flex-direction:column;gap:2px;max-height:280px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.page -->
+</main>
+
+<script>
+lucide.createIcons();
+
+// Scenario presets
+function setScenario(level) {
+  const presets = {
+    low:    { attempts: 3,  delay: 800  },
+    medium: { attempts: 8,  delay: 300  },
+    high:   { attempts: 15, delay: 50   }
+  };
+  const p = presets[level];
+  document.getElementById('num_attempts').value = p.attempts;
+  document.getElementById('delay_ms').value = p.delay;
+}
+
+// Blue vs Red renderer
+function renderBvR(steps, blocked) {
+  const redFeed  = document.getElementById('red-feed');
+  const blueFeed = document.getElementById('blue-feed');
+  const bvrCard  = document.getElementById('bvr-card');
+  const gauge    = document.getElementById('gauge-circle');
+  const gaugePct = document.getElementById('gauge-pct');
+  const gaugeGrade = document.getElementById('gauge-grade');
+
+  bvrCard.style.display = 'block';
+  redFeed.innerHTML = '';
+  blueFeed.innerHTML = '';
+
+  const blueReactions = {
+    none:             { icon: '📋', text: 'Logged attempt', color: 'var(--t3)' },
+    warning:          { icon: '⚠️', text: 'Suspicious — flagged', color: 'var(--warn)' },
+    block_triggered:  { icon: '🛑', text: 'IP BLOCKED — auto defense', color: 'var(--err)' },
+    ip_blocked:       { icon: '🚫', text: 'Request rejected (IP blocked)', color: 'var(--err)' },
+    account_locked:   { icon: '🔒', text: 'Account locked', color: 'var(--warn)' },
+    honeypot_triggered: { icon: '🚨', text: 'HONEYPOT ALERT — CRITICAL logged', color: '#fbbf24' },
+  };
+
+  steps.forEach((s, i) => {
+    // RED side
+    const redDiv = document.createElement('div');
+    redDiv.style.cssText = `color:var(--t2);padding:2px 0;opacity:0;transition:opacity 0.2s ${i*80}ms`;
+    redDiv.innerHTML = `<span style="color:var(--t3)">${s.timestamp.slice(11)}</span>  <span style="color:var(--err)">ATK #${s.attempt}</span>  login("${document.getElementById('target_username').value}")`;
+    redFeed.appendChild(redDiv);
+    setTimeout(() => { redDiv.style.opacity = '1'; }, i * 80 + 50);
+
+    // BLUE side
+    const react = blueReactions[s.action] || { icon: '📋', text: s.action, color: 'var(--t3)' };
+    const blueDiv = document.createElement('div');
+    blueDiv.style.cssText = `color:${react.color};padding:2px 0;opacity:0;transition:opacity 0.2s ${i*80+200}ms`;
+    blueDiv.textContent = `${s.timestamp.slice(11)}  ${react.icon} ${react.text}`;
+    blueFeed.appendChild(blueDiv);
+    setTimeout(() => { blueDiv.style.opacity = '1'; }, i * 80 + 250);
+  });
+
+  // Defense Score
+  const blockedCount = steps.filter(s => s.status === 'blocked').length;
+  const total = steps.length;
+  const score = total > 0 ? Math.round((blockedCount / total) * 100) : (blocked ? 80 : 20);
+  const finalScore = blocked ? Math.max(score, 65) : score;
+  const grade = finalScore >= 80 ? 'A' : finalScore >= 60 ? 'B' : finalScore >= 40 ? 'C' : 'F';
+  const gradeColor = finalScore >= 80 ? 'var(--ok)' : finalScore >= 60 ? 'var(--warn)' : 'var(--err)';
+
+  const circumference = 163;
+  const offset = circumference * (1 - finalScore / 100);
+  setTimeout(() => {
+    gauge.style.strokeDashoffset = offset;
+    gauge.style.stroke = gradeColor;
+    gaugePct.textContent = finalScore + '%';
+    gaugeGrade.textContent = grade;
+    gaugeGrade.style.color = gradeColor;
+  }, steps.length * 80 + 400);
+}
+
+// Attack type card selection
+document.querySelectorAll('.at-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.at-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    // Auto-set delay for slow brute force
+    const val = card.querySelector('input').value;
+    if (val === 'slow_brute') document.getElementById('delay_ms').value = 2000;
+    else if (val === 'dictionary') document.getElementById('delay_ms').value = 200;
+    else document.getElementById('delay_ms').value = 300;
+  });
+});
+
+const form      = document.getElementById('sim-form');
+const runBtn    = document.getElementById('run-btn');
+const logFeed   = document.getElementById('log-feed');
+const progBar   = document.getElementById('progress-bar');
+const logStatus = document.getElementById('log-status');
+
+function getAttackType() {
+  const sel = document.querySelector('input[name="attack_type"]:checked');
+  return sel ? sel.value : 'dictionary';
+}
+
+function attackLabel(type) {
+  return {
+    dictionary: 'Dictionary Attack',
+    credential_stuffing: 'Credential Stuffing',
+    slow_brute: 'Slow Brute Force',
+    targeted: 'Targeted Attack',
+    enumeration: 'Enumeration'
+  }[type] || type;
+}
+
+function addLogLine(step) {
+  const div = document.createElement('div');
+  div.className = 'log-line';
+  const isHoney = step.action === 'honeypot_triggered';
+  const stClass = isHoney ? 'honey' : (step.status === 'blocked' ? 'blocked' : 'failed');
+  const actionIcon = isHoney ? '🍯' : (step.status === 'blocked' ? '🛑' : step.action === 'warning' ? '⚠️' : '✗');
+  const stLabel   = isHoney ? 'HONEY' : step.status.toUpperCase();
+  div.innerHTML = `
+    <span class="log-ts">${step.timestamp.slice(11)}</span>
+    <span class="log-n">#${String(step.attempt).padStart(3,'0')}</span>
+    <span class="log-st ${stClass}">${stLabel}</span>
+    <span class="log-act">${step.action}</span>
+    <span class="log-msg">${actionIcon} ${step.message}</span>
+  `;
+  logFeed.appendChild(div);
+  logFeed.scrollTop = logFeed.scrollHeight;
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const attackType  = getAttackType();
+  const username    = document.getElementById('target_username').value.trim();
+  const numAttempts = document.getElementById('num_attempts').value;
+  const delayMs     = document.getElementById('delay_ms').value;
+
+  if (!username) { alert('Nhập target username!'); return; }
+
+  // Reset UI
+  runBtn.disabled = true;
+  runBtn.innerHTML = '<i data-lucide="loader" style="width:11px;height:11px"></i>Running...';
+  lucide.createIcons();
+  logFeed.innerHTML = '';
+  logStatus.textContent = 'Simulating...';
+  logStatus.style.color = 'var(--warn)';
+  progBar.style.width = '0%';
+
+  document.getElementById('s-type').textContent  = attackLabel(attackType);
+  document.getElementById('s-target').textContent = username;
+  document.getElementById('s-ip').textContent     = '—';
+  document.getElementById('s-count').textContent  = '0';
+  document.getElementById('s-blocked').textContent = '—';
+
+  // Add header line
+  const header = document.createElement('div');
+  header.style.cssText = 'color:var(--t3);padding:4px 0 8px;border-bottom:1px solid var(--b1);margin-bottom:4px;font-size:10px;letter-spacing:.5px';
+  header.textContent = `▶ ${attackLabel(attackType).toUpperCase()} — target: ${username} — attempts: ${numAttempts} — delay: ${delayMs}ms`;
+  logFeed.appendChild(header);
+
+  try {
+    const resp = await fetch('{{ url_for("admin.simulate_attack") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.getElementById('csrf-token').value
+      },
+      body: JSON.stringify({
+        target_username: username,
+        num_attempts: numAttempts,
+        delay_ms: delayMs,
+        attack_type: attackType
+      })
+    });
+
+    const data = await resp.json();
+    if (!resp.ok || !data.ok) throw new Error(data.error || 'Simulation failed');
+
+    // Render steps with animation
+    const steps = data.steps || [];
+    const total = steps.length;
+    for (let i = 0; i < steps.length; i++) {
+      addLogLine(steps[i]);
+      progBar.style.width = `${((i+1)/total)*100}%`;
+      document.getElementById('s-count').textContent = String(i+1);
+      if (i < steps.length-1) await new Promise(r => setTimeout(r, 60));
+    }
+
+    // Final status
+    document.getElementById('s-ip').textContent = data.attacker_ip;
+    const blocked = data.blocked;
+    const sBlocked = document.getElementById('s-blocked');
+    sBlocked.textContent = blocked ? 'YES' : 'NO';
+    sBlocked.style.color = blocked ? 'var(--err)' : 'var(--ok)';
+
+    if (blocked) {
+      const line = document.createElement('div');
+      line.className = 'log-blocked-line';
+      line.textContent = `🛑 IP ${data.attacker_ip} has been BLOCKED — defense activated`;
+      logFeed.appendChild(line);
+      logFeed.scrollTop = logFeed.scrollHeight;
+    }
+
+    logStatus.textContent = `Completed — ${total} attempts${blocked ? ' · IP BLOCKED' : ''}`;
+    logStatus.style.color = blocked ? 'var(--err)' : 'var(--ok)';
+    progBar.style.background = blocked ? 'var(--err)' : 'var(--ok)';
+
+    // Render Blue vs Red timeline
+    renderBvR(steps, blocked);
+
+  } catch (err) {
+    logStatus.textContent = 'Error: ' + err.message;
+    logStatus.style.color = 'var(--err)';
+  } finally {
+    runBtn.disabled = false;
+    runBtn.innerHTML = '<i data-lucide="play" style="width:11px;height:11px"></i>Run Attack';
+    lucide.createIcons();
+  }
+});
+</script>
+</body>
+</html>

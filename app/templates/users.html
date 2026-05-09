@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ _('User Management') }} — PhúNV Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0c;--s1:#111115;--s2:#18181d;--s3:#1f1f26;
+  --b1:#27272f;--b2:#1c1c23;
+  --t1:#f1f1f3;--t2:#8b8b99;--t3:#52525e;
+  --acc:#6d4aff;--acc2:#4f8fff;
+  --ok:#34d399;--err:#f87171;--warn:#fbbf24;
+  --r:6px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);display:flex;min-height:100vh;font-size:13px;line-height:1.5}
+
+/* ── SIDEBAR ── */
+.sb{width:180px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sb-brand{display:flex;align-items:center;gap:8px;padding:14px 12px;border-bottom:1px solid var(--b1)}
+.sb-mark{width:24px;height:24px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.sb-name{font-size:12px;font-weight:600}
+.sb-sub{font-size:9px;color:var(--t3);letter-spacing:.5px}
+.sb-nav{flex:1;padding:6px;overflow-y:auto}
+.nav-lbl{font-size:9px;font-weight:600;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;padding:10px 8px 3px}
+.nav-a{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;color:var(--t2);text-decoration:none;font-size:12px;margin-bottom:1px;transition:background .1s,color .1s}
+.nav-a:hover,.nav-a.on{background:var(--s2);color:var(--t1)}
+.sb-foot{padding:10px;border-top:1px solid var(--b1)}
+.sb-user{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:4px}
+.sb-av{width:22px;height:22px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0}
+.sb-uname{font-size:11px;font-weight:500}
+.sb-role{font-size:9px;color:var(--t3)}
+.sb-logout{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;color:var(--t3);text-decoration:none;font-size:11px;margin-top:2px;transition:background .1s,color .1s}
+.sb-logout:hover{background:var(--s2);color:var(--err)}
+
+/* ── MAIN ── */
+.main{margin-left:180px;flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0}
+.topbar-title{font-size:12px;font-weight:500;color:var(--t2)}
+.topbar-r{display:flex;align-items:center;gap:10px}
+
+.page{padding:16px;display:flex;flex-direction:column;gap:16px}
+
+/* ── HEADER ── */
+.page-header{display:flex;justify-content:space-between;align-items:center}
+.page-title{font-size:16px;font-weight:600}
+.btn-add{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--acc);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:500;cursor:pointer}
+.btn-add:hover{background:#5c3ceb}
+
+/* ── SEARCH & FILTERS ── */
+.toolbar{display:flex;gap:10px;align-items:center}
+.search-box{flex:1;max-width:300px;position:relative}
+.search-input{width:100%;padding:8px 12px 8px 34px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--t1);font-size:12px;outline:none}
+.search-input:focus{border-color:var(--acc)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--t3)}
+.filter-select{padding:8px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--t1);font-size:12px;outline:none;cursor:pointer}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+.table{width:100%;border-collapse:collapse}
+.table thead th{padding:10px 14px;font-size:10px;font-weight:600;color:var(--t3);text-align:left;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1);background:var(--s2)}
+.table tbody td{padding:12px 14px;font-size:12px;color:var(--t2);border-bottom:1px solid var(--b2)}
+.table tbody tr:last-child td{border-bottom:none}
+.table tbody tr:hover td{background:var(--s2)}
+
+.user-cell{display:flex;align-items:center;gap:10px}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.user-info{flex:1}
+.user-name{font-weight:500;color:var(--t1)}
+.user-email{font-size:11px;color:var(--t3)}
+
+.role-badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase}
+.role-badge.admin{background:rgba(109,74,255,.15);color:var(--acc)}
+.role-badge.user{background:rgba(52,211,153,.15);color:var(--ok)}
+.role-badge.analyst{background:rgba(6,182,212,.15);color:var(--acc2)}
+
+.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:6px}
+.status-dot.active{background:var(--ok)}
+.status-dot.locked{background:var(--err)}
+.status-dot.inactive{background:var(--t3)}
+
+.action-btns{display:flex;gap:4px}
+.action-btn{width:28px;height:28px;background:transparent;border:1px solid var(--b2);border-radius:4px;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.action-btn:hover{background:var(--s3);color:var(--t1);border-color:var(--b1)}
+.action-btn.danger:hover{background:rgba(248,113,113,.1);color:var(--err);border-color:var(--err)}
+
+.empty-state{padding:40px;text-align:center;color:var(--t3)}
+
+/* ── PAGINATION ── */
+.pagination{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--s2);border-top:1px solid var(--b1)}
+.pagination-info{font-size:11px;color:var(--t3)}
+.pagination-btns{display:flex;gap:6px}
+.page-btn{padding:6px 12px;background:var(--s1);border:1px solid var(--b2);border-radius:4px;color:var(--t2);font-size:11px;cursor:pointer}
+.page-btn:hover{background:var(--s3);color:var(--t1)}
+.page-btn.active{background:var(--acc);border-color:var(--acc);color:#fff}
+
+/* ── HONEY ACCOUNTS ── */
+.honey-section{background:var(--s1);border:1px solid var(--b2);border-radius:var(--r);margin-top:16px}
+.honey-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--b2);background:rgba(251,191,36,.05)}
+.honey-title{font-size:13px;font-weight:600;color:var(--warn);display:flex;align-items:center;gap:8px}
+.honey-count{font-size:11px;padding:2px 8px;background:rgba(251,191,36,.15);color:var(--warn);border-radius:10px}
+.honey-list{display:flex;flex-direction:column}
+.honey-item{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--b2)}
+.honey-item:last-child{border-bottom:none}
+.honey-info{flex:1}
+.honey-username{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--warn)}
+.honey-email{font-size:11px;color:var(--t3)}
+.honey-stats{text-align:right}
+.honey-attempts{font-size:14px;font-weight:600;color:var(--err)}
+.honey-label{font-size:10px;color:var(--t3)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-brand">
+    <div class="sb-mark">P</div>
+    <div><div class="sb-name">PhúNV Security</div><div class="sb-sub">SOC PLATFORM</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">{{ _('Monitor') }}</div>
+    <a href="{{ url_for('auth.dashboard') }}" class="nav-a">
+      <i data-lucide="layout-dashboard" style="width:12px;height:12px"></i>{{ _('Overview') }}
+    </a>
+    <a href="{{ url_for('auth.logs') }}" class="nav-a">
+      <i data-lucide="scroll-text" style="width:12px;height:12px"></i>{{ _('Login Logs') }}
+    </a>
+    <a href="{{ url_for('auth.alerts') }}" class="nav-a">
+      <i data-lucide="bell" style="width:12px;height:12px"></i>{{ _('Alerts') }}
+    </a>
+    <a href="{{ url_for('auth.analytics') }}" class="nav-a">
+      <i data-lucide="bar-chart-2" style="width:12px;height:12px"></i>{{ _('Analytics') }}
+    </a>
+    <div class="nav-lbl">{{ _('Defense') }}</div>
+    <a href="#" class="nav-a">
+      <i data-lucide="shield-ban" style="width:12px;height:12px"></i>{{ _('Blocked IPs') }}
+    </a>
+    <a href="{{ url_for('auth.lab') }}" class="nav-a">
+      <i data-lucide="terminal" style="width:12px;height:12px"></i>{{ _('Simulator') }}
+    </a>
+    <div class="nav-lbl">{{ _('Config') }}</div>
+    <a href="{{ url_for('auth.users') }}" class="nav-a on">
+      <i data-lucide="users" style="width:12px;height:12px"></i>{{ _('Users') }}
+    </a>
+    <a href="{{ url_for('auth.settings') }}" class="nav-a">
+      <i data-lucide="settings-2" style="width:12px;height:12px"></i>{{ _('Settings') }}
+    </a>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-user">
+      <div class="sb-av">{{ current_user.username[0].upper() }}</div>
+      <div><div class="sb-uname">{{ current_user.username }}</div><div class="sb-role">{{ current_user.role }}</div></div>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="sb-logout">
+      <i data-lucide="log-out" style="width:11px;height:11px"></i>{{ _('Sign out') }}
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">{{ _('User Management') }}</span>
+  </div>
+
+  <div class="page">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">{{ _('User Management') }}</h1>
+      <button class="btn-add" onclick="showAddUserModal()">
+        <i data-lucide="plus" style="width:14px;height:14px"></i>
+        {{ _('Add User') }}
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-box">
+        <i data-lucide="search" class="search-icon" style="width:14px;height:14px"></i>
+        <input type="text" class="search-input" placeholder="{{ _('Search users...') }}" id="search-input">
+      </div>
+      <select class="filter-select" id="role-filter">
+        <option value="">{{ _('All Roles') }}</option>
+        <option value="admin">{{ _('Admin') }}</option>
+        <option value="user">{{ _('User') }}</option>
+        <option value="analyst">{{ _('Analyst') }}</option>
+      </select>
+      <select class="filter-select" id="status-filter">
+        <option value="">{{ _('All Status') }}</option>
+        <option value="active">{{ _('Active') }}</option>
+        <option value="locked">{{ _('Locked') }}</option>
+      </select>
+    </div>
+
+    <!-- Users Table -->
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>{{ _('User') }}</th>
+            <th>{{ _('Role') }}</th>
+            <th>{{ _('Status') }}</th>
+            <th>{{ _('Last Login') }}</th>
+            <th>{{ _('Login Count') }}</th>
+            <th>{{ _('Actions') }}</th>
+          </tr>
+        </thead>
+        <tbody id="users-table-body">
+          {% for user in users %}
+          <tr data-user-id="{{ user.id }}">
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar">{{ user.username[0].upper() }}</div>
+                <div class="user-info">
+                  <div class="user-name">{{ user.username }}</div>
+                  <div class="user-email">{{ user.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge {{ user.role }}">{{ user.role }}</span></td>
+            <td>
+              <span class="status-dot {% if user.is_locked %}locked{% elif user.is_active %}active{% else %}inactive{% endif %}"></span>
+              {% if user.is_locked %}{{ _('Locked') }}{% elif user.is_active %}{{ _('Active') }}{% else %}{{ _('Inactive') }}{% endif %}
+            </td>
+            <td>{{ user.last_login.strftime('%d/%m/%Y %H:%M') if user.last_login else '—' }}</td>
+            <td>{{ user.login_count }}</td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="{{ _('Edit') }}" onclick="editUser({{ user.id }})">
+                  <i data-lucide="edit-2" style="width:12px;height:12px"></i>
+                </button>
+                {% if user.id != current_user.id %}
+                <button class="action-btn" title="{{ _('Toggle Lock') }}" onclick="toggleUserLock({{ user.id }})">
+                  <i data-lucide="{% if user.is_locked %}unlock{% else %}lock{% endif %}" style="width:12px;height:12px"></i>
+                </button>
+                <button class="action-btn danger" title="{{ _('Delete') }}" onclick="deleteUser({{ user.id }})">
+                  <i data-lucide="trash-2" style="width:12px;height:12px"></i>
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">{{ _('No users found') }}</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <span class="pagination-info">{{ _('Showing') }} {{ users|length }} {{ _('of') }} {{ total_users }} {{ _('users') }}</span>
+      </div>
+    </div>
+
+    <!-- Honey Accounts Section -->
+    {% if honey_accounts %}
+    <div class="honey-section">
+      <div class="honey-header">
+        <span class="honey-title">
+          <i data-lucide="bug" style="width:14px;height:14px"></i>
+          {{ _('Honeypot Accounts') }} <span class="honey-count">{{ honey_accounts|length }}</span>
+        </span>
+      </div>
+      <div class="honey-list">
+        {% for user in honey_accounts %}
+        <div class="honey-item">
+          <div class="honey-info">
+            <div class="honey-username">{{ user.username }}</div>
+            <div class="honey-email">{{ user.email }}</div>
+          </div>
+          <div class="honey-stats">
+            <div class="honey-attempts">{{ user.login_count }}</div>
+            <div class="honey-label">{{ _('attack attempts') }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</main>
+
+<script>
+lucide.createIcons();
+
+// Search functionality
+document.getElementById('search-input').addEventListener('input', function(e) {
+  filterUsers();
+});
+
+document.getElementById('role-filter').addEventListener('change', filterUsers);
+document.getElementById('status-filter').addEventListener('change', filterUsers);
+
+function filterUsers() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const role = document.getElementById('role-filter').value;
+  const status = document.getElementById('status-filter').value;
+
+  document.querySelectorAll('#users-table-body tr').forEach(row => {
+    const username = row.querySelector('.user-name').textContent.toLowerCase();
+    const email = row.querySelector('.user-email').textContent.toLowerCase();
+    const userRole = row.querySelector('.role-badge').textContent;
+    const isLocked = row.querySelector('.status-dot').classList.contains('locked');
+
+    let show = true;
+    if (search && !username.includes(search) && !email.includes(search)) show = false;
+    if (role && userRole !== role) show = false;
+    if (status === 'locked' && !isLocked) show = false;
+    if (status === 'active' && isLocked) show = false;
+
+    row.style.display = show ? '' : 'none';
+  });
+}
+
+function showAddUserModal() {
+  alert('{{ _("Add user feature coming soon!") }}');
+}
+
+function editUser(id) {
+  alert('{{ _("Edit user feature coming soon!") }}');
+}
+
+function toggleUserLock(id) {
+  if (confirm('{{ _("Toggle user lock status?") }}')) {
+    fetch('/api/user/' + id + '/toggle-lock', { method: 'POST' })
+      .then(() => window.location.reload());
+  }
+}
+
+function deleteUser(id) {
+  if (confirm('{{ _("Are you sure you want to delete this user?") }}')) {
+    fetch('/api/user/' + id + '/delete', { method: 'POST' })
+      .then(() => window.location.reload());
+  }
+}
+</script>
+</body>
+</html>

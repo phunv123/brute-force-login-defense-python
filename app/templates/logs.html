@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ _('Login Logs') }} — PhúNV Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0c;--s1:#111115;--s2:#18181d;--s3:#1f1f26;
+  --b1:#27272f;--b2:#1c1c23;
+  --t1:#f1f1f3;--t2:#8b8b99;--t3:#52525e;
+  --acc:#6d4aff;--acc2:#4f8fff;
+  --ok:#34d399;--err:#f87171;--warn:#fbbf24;
+  --r:6px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);display:flex;min-height:100vh;font-size:13px;line-height:1.5}
+
+/* ── SIDEBAR ── */
+.sb{width:180px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sb-brand{display:flex;align-items:center;gap:8px;padding:14px 12px;border-bottom:1px solid var(--b1)}
+.sb-mark{width:24px;height:24px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.sb-name{font-size:12px;font-weight:600}
+.sb-sub{font-size:9px;color:var(--t3);letter-spacing:.5px}
+.sb-nav{flex:1;padding:6px;overflow-y:auto}
+.nav-lbl{font-size:9px;font-weight:600;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;padding:10px 8px 3px}
+.nav-a{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;color:var(--t2);text-decoration:none;font-size:12px;margin-bottom:1px;transition:background .1s,color .1s}
+.nav-a:hover,.nav-a.on{background:var(--s2);color:var(--t1)}
+.sb-foot{padding:10px;border-top:1px solid var(--b1)}
+.sb-user{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:4px}
+.sb-av{width:22px;height:22px;border-radius:50%;background:var(--s3);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0}
+.sb-uname{font-size:11px;font-weight:500}
+.sb-role{font-size:9px;color:var(--t3)}
+.sb-logout{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;color:var(--t3);text-decoration:none;font-size:11px;margin-top:2px;transition:background .1s,color .1s}
+.sb-logout:hover{background:var(--s2);color:var(--err)}
+
+/* ── MAIN ── */
+.main{margin-left:180px;flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0}
+.topbar-title{font-size:12px;font-weight:500;color:var(--t2)}
+.topbar-r{display:flex;align-items:center;gap:10px}
+
+.page{padding:16px;display:flex;flex-direction:column;gap:16px}
+
+/* ── HEADER ── */
+.page-header{display:flex;justify-content:space-between;align-items:center}
+.page-title{font-size:16px;font-weight:600}
+.btn-export{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--s2);border:1px solid var(--b2);border-radius:6px;color:var(--t2);font-size:12px;font-weight:500;cursor:pointer}
+.btn-export:hover{background:var(--s3);color:var(--t1)}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat-box{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px}
+.stat-box-icon{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.stat-box-icon.total{background:rgba(109,74,255,.15);color:var(--acc)}
+.stat-box-icon.success{background:rgba(52,211,153,.15);color:var(--ok)}
+.stat-box-icon.failed{background:rgba(248,113,113,.15);color:var(--err)}
+.stat-box-icon.blocked{background:rgba(251,191,36,.15);color:var(--warn)}
+.stat-box-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.stat-box-value{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.stat-box-sub{font-size:11px;color:var(--t3);margin-top:2px}
+
+/* ── FILTERS ── */
+.filters-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search-box{flex:1;max-width:280px;position:relative}
+.search-input{width:100%;padding:8px 12px 8px 34px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--t1);font-size:12px;outline:none}
+.search-input:focus{border-color:var(--acc)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--t3)}
+.filter-select{padding:8px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--t1);font-size:12px;outline:none;cursor:pointer}
+.date-input{padding:8px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--t1);font-size:12px;outline:none}
+.btn-apply{padding:8px 16px;background:var(--acc);border:none;border-radius:4px;color:#fff;font-size:12px;font-weight:500;cursor:pointer}
+.btn-apply:hover{background:#5c3ceb}
+.btn-clear{padding:8px 16px;background:transparent;border:1px solid var(--b2);border-radius:4px;color:var(--t2);font-size:12px;cursor:pointer}
+.btn-clear:hover{background:var(--s3)}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+.table{width:100%;border-collapse:collapse}
+.table thead th{padding:10px 14px;font-size:10px;font-weight:600;color:var(--t3);text-align:left;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1);background:var(--s2)}
+.table tbody td{padding:10px 14px;font-size:12px;color:var(--t2);border-bottom:1px solid var(--b2)}
+.table tbody tr:last-child td{border-bottom:none}
+.table tbody tr:hover td{background:var(--s2)}
+
+.mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+.timestamp{color:var(--t3)}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:500}
+.status-badge.success{background:rgba(52,211,153,.15);color:var(--ok)}
+.status-badge.failed{background:rgba(248,113,113,.15);color:var(--err)}
+.status-badge.blocked{background:rgba(251,191,36,.15);color:var(--warn)}
+
+.reason-tag{font-size:10px;padding:2px 6px;background:var(--s3);border-radius:3px;color:var(--t3)}
+
+.empty-state{padding:40px;text-align:center;color:var(--t3)}
+
+/* ── PAGINATION ── */
+.pagination{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--s2);border-top:1px solid var(--b1)}
+.pagination-info{font-size:11px;color:var(--t3)}
+.pagination-btns{display:flex;gap:6px}
+.page-btn{padding:6px 12px;background:var(--s1);border:1px solid var(--b2);border-radius:4px;color:var(--t2);font-size:11px;cursor:pointer}
+.page-btn:hover{background:var(--s3);color:var(--t1)}
+.page-btn.active{background:var(--acc);border-color:var(--acc);color:#fff}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-brand">
+    <div class="sb-mark">P</div>
+    <div><div class="sb-name">PhúNV Security</div><div class="sb-sub">SOC PLATFORM</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">{{ _('Monitor') }}</div>
+    <a href="{{ url_for('auth.dashboard') }}" class="nav-a">
+      <i data-lucide="layout-dashboard" style="width:12px;height:12px"></i>{{ _('Overview') }}
+    </a>
+    <a href="{{ url_for('auth.logs') }}" class="nav-a on">
+      <i data-lucide="scroll-text" style="width:12px;height:12px"></i>{{ _('Login Logs') }}
+    </a>
+    <a href="{{ url_for('auth.alerts') }}" class="nav-a">
+      <i data-lucide="bell" style="width:12px;height:12px"></i>{{ _('Alerts') }}
+    </a>
+    <div class="nav-lbl">{{ _('Defense') }}</div>
+    <a href="#" class="nav-a">
+      <i data-lucide="shield-ban" style="width:12px;height:12px"></i>{{ _('Blocked IPs') }}
+    </a>
+    <a href="{{ url_for('auth.lab') }}" class="nav-a">
+      <i data-lucide="terminal" style="width:12px;height:12px"></i>{{ _('Simulator') }}
+    </a>
+    <div class="nav-lbl">{{ _('Config') }}</div>
+    <a href="{{ url_for('auth.users') }}" class="nav-a">
+      <i data-lucide="users" style="width:12px;height:12px"></i>{{ _('Users') }}
+    </a>
+    <a href="{{ url_for('auth.settings') }}" class="nav-a">
+      <i data-lucide="settings-2" style="width:12px;height:12px"></i>{{ _('Settings') }}
+    </a>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-user">
+      <div class="sb-av">{{ current_user.username[0].upper() }}</div>
+      <div><div class="sb-uname">{{ current_user.username }}</div><div class="sb-role">{{ current_user.role }}</div></div>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="sb-logout">
+      <i data-lucide="log-out" style="width:11px;height:11px"></i>{{ _('Sign out') }}
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">{{ _('Login Logs') }}</span>
+  </div>
+
+  <div class="page">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">{{ _('Login Logs') }}</h1>
+      <button class="btn-export" onclick="exportLogs()">
+        <i data-lucide="download" style="width:14px;height:14px"></i>
+        {{ _('Export CSV') }}
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-box-icon total"><i data-lucide="list" style="width:16px;height:16px"></i></div>
+        <div class="stat-box-label">{{ _('Total Logs') }}</div>
+        <div class="stat-box-value">{{ total_logs }}</div>
+        <div class="stat-box-sub">{{ _('all time') }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-icon success"><i data-lucide="check-circle" style="width:16px;height:16px"></i></div>
+        <div class="stat-box-label">{{ _('Successful') }}</div>
+        <div class="stat-box-value">{{ success_count }}</div>
+        <div class="stat-box-sub">{{ _('logins') }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-icon failed"><i data-lucide="x-circle" style="width:16px;height:16px"></i></div>
+        <div class="stat-box-label">{{ _('Failed') }}</div>
+        <div class="stat-box-value">{{ failed_count }}</div>
+        <div class="stat-box-sub">{{ _('attempts') }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-icon blocked"><i data-lucide="shield-ban" style="width:16px;height:16px"></i></div>
+        <div class="stat-box-label">{{ _('Blocked') }}</div>
+        <div class="stat-box-value">{{ blocked_count }}</div>
+        <div class="stat-box-sub">{{ _('IPs') }}</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-row">
+      <div class="search-box">
+        <i data-lucide="search" class="search-icon" style="width:14px;height:14px"></i>
+        <input type="text" class="search-input" placeholder="{{ _('Search by username or IP...') }}" id="search-input">
+      </div>
+      <select class="filter-select" id="status-filter">
+        <option value="">{{ _('All Status') }}</option>
+        <option value="success">{{ _('Success') }}</option>
+        <option value="failed">{{ _('Failed') }}</option>
+      </select>
+      <input type="date" class="date-input" id="date-from" title="{{ _('From date') }}">
+      <input type="date" class="date-input" id="date-to" title="{{ _('To date') }}">
+      <button class="btn-apply" onclick="filterLogs()">{{ _('Apply') }}</button>
+      <button class="btn-clear" onclick="clearFilters()">{{ _('Clear') }}</button>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>{{ _('Timestamp') }}</th>
+            <th>{{ _('Username') }}</th>
+            <th>{{ _('IP Address') }}</th>
+            <th>{{ _('Status') }}</th>
+            <th>{{ _('Reason') }}</th>
+            <th>{{ _('User Agent') }}</th>
+          </tr>
+        </thead>
+        <tbody id="logs-table-body">
+          {% for log in logs %}
+          <tr>
+            <td class="timestamp">{{ log.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+            <td><span class="mono" style="font-weight:500;color:var(--t1)">{{ log.username }}</span></td>
+            <td><span class="mono">{{ log.ip_address }}</span></td>
+            <td>
+              <span class="status-badge {{ log.status }}">
+                {% if log.status == 'success' %}<i data-lucide="check" style="width:10px;height:10px"></i>
+                {% elif log.status == 'failed' %}<i data-lucide="x" style="width:10px;height:10px"></i>
+                {% else %}<i data-lucide="shield" style="width:10px;height:10px"></i>{% endif %}
+                {{ log.status }}
+              </span>
+            </td>
+            <td>
+              {% if log.failure_reason %}
+              <span class="reason-tag">{{ log.failure_reason }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ log.user_agent or '' }}">
+              {{ log.user_agent[:50] if log.user_agent else '—' }}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">{{ _('No logs found') }}</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <span class="pagination-info">{{ _('Showing') }} {{ logs|length }} {{ _('of') }} {{ total_logs }} {{ _('logs') }}</span>
+        <div class="pagination-btns">
+          {% if page > 1 %}
+          <a href="{{ url_for('auth.logs', page=page-1) }}" class="page-btn">{{ _('Prev') }}</a>
+          {% endif %}
+          <span class="page-btn active">{{ page }}</span>
+          {% if has_next %}
+          <a href="{{ url_for('auth.logs', page=page+1) }}" class="page-btn">{{ _('Next') }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+lucide.createIcons();
+
+// Filter functionality
+function filterLogs() {
+  const search = document.getElementById('search-input').value;
+  const status = document.getElementById('status-filter').value;
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo = document.getElementById('date-to').value;
+
+  let url = '/logs?';
+  if (search) url += 'search=' + encodeURIComponent(search) + '&';
+  if (status) url += 'status=' + status + '&';
+  if (dateFrom) url += 'from=' + dateFrom + '&';
+  if (dateTo) url += 'to=' + dateTo + '&';
+
+  window.location.href = url;
+}
+
+function clearFilters() {
+  window.location.href = '/logs';
+}
+
+// Export functionality
+function exportLogs() {
+  alert('{{ _("Export feature coming soon!") }}');
+}
+
+// Auto-filter on enter
+document.getElementById('search-input').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') filterLogs();
+});
+</script>
+</body>
+</html>
