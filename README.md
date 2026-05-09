@@ -20,6 +20,7 @@
 
 ### 🔐 Hệ thống xác thực
 - Đăng ký / Đăng nhập với mã hóa mật khẩu (Bcrypt)
+- Đăng nhập Social OAuth: Google / GitHub / Microsoft
 - Quản lý phiên đăng nhập (Session)
 - Phân quyền Admin / User
 - CAPTCHA sau nhiều lần đăng nhập thất bại
@@ -83,6 +84,30 @@ python run.py
 ```
 
 Mở trình duyệt: `http://localhost:5000`
+
+## 🔑 Cấu hình Social Login (OAuth)
+
+Hệ thống hỗ trợ OAuth thật cho Google / GitHub / Microsoft.
+
+### 1. Khai báo biến môi trường trong `.env`
+```env
+OAUTH_GOOGLE_CLIENT_ID=...
+OAUTH_GOOGLE_CLIENT_SECRET=...
+
+OAUTH_GITHUB_CLIENT_ID=...
+OAUTH_GITHUB_CLIENT_SECRET=...
+
+OAUTH_MICROSOFT_CLIENT_ID=...
+OAUTH_MICROSOFT_CLIENT_SECRET=...
+OAUTH_MICROSOFT_TENANT=common
+```
+
+### 2. Callback URL cần đăng ký trên provider
+- Google: `http://127.0.0.1:5000/oauth/google/callback`
+- GitHub: `http://127.0.0.1:5000/oauth/github/callback`
+- Microsoft: `http://127.0.0.1:5000/oauth/microsoft/callback`
+
+Sau khi cấu hình, các nút social trên trang Login/Register sẽ đăng nhập thật qua OAuth.
 
 ## 📁 Cấu trúc dự án
 
