@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng nhập{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h2>Đăng nhập</h2>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+
+        <label>{{ form.username.label }}</label>
+        {{ form.username(class="input") }}
+
+        <label>{{ form.password.label }}</label>
+        {{ form.password(class="input") }}
+
+        <label class="checkbox">
+            {{ form.remember() }}
+            <span>{{ form.remember.label.text }}</span>
+        </label>
+
+        {{ form.submit(class="button") }}
+    </form>
+</section>
+{% endblock %}
