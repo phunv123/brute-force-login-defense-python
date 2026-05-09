@@ -36,3 +36,8 @@ logs/*.log
 htmlcov/
 .coverage
 .pytest_cache/
+
+# AI / Local tooling (không push lên repo)
+.claude/
+.codex
+HANDOFF.md

@@ -1,3 +1,5 @@
+import re
+import secrets
 from datetime import datetime
 
 from sqlalchemy import func, or_
@@ -56,3 +58,43 @@ def login_success(user):
 def login_failed(user):
     if user is not None:
         user.failed_attempts += 1
+
+
+def find_user_by_email(email):
+    keyword = email.strip().lower()
+    return User.query.filter(func.lower(User.email) == keyword).first()
+
+
+def _normalize_username_candidate(raw):
+    candidate = re.sub(r"[^a-zA-Z0-9_]+", "_", raw.strip().lower()).strip("_")
+    if not candidate:
+        candidate = "user"
+    if len(candidate) < 3:
+        candidate = f"{candidate}_usr"
+    return candidate[:80]
+
+
+def generate_unique_username(username_hint):
+    base = _normalize_username_candidate(username_hint)
+    if not is_username_exists(base):
+        return base
+
+    for idx in range(1, 10000):
+        suffix = f"_{idx}"
+        candidate = f"{base[:80 - len(suffix)]}{suffix}"
+        if not is_username_exists(candidate):
+            return candidate
+
+    raise ValueError("Không thể tạo username duy nhất cho tài khoản social login.")
+
+
+def create_oauth_user(email, username_hint):
+    user = User(
+        username=generate_unique_username(username_hint),
+        email=email.strip().lower(),
+        role="user",
+    )
+    # OAuth user không dùng password local, tạo secret random để đảm bảo schema hợp lệ.
+    user.set_password(secrets.token_urlsafe(32))
+    db.session.add(user)
+    return user

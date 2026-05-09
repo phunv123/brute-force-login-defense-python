@@ -17,6 +17,7 @@ class User(db.Model, UserMixin):
     is_locked = db.Column(db.Boolean, default=False, nullable=False)
     locked_until = db.Column(db.DateTime, nullable=True)
     failed_attempts = db.Column(db.Integer, default=0, nullable=False)
+    is_honeypot = db.Column(db.Boolean, default=False, nullable=False)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     last_login = db.Column(db.DateTime, nullable=True)
